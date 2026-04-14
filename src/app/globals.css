@@ -1,0 +1,226 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+:root {
+  /* ── CORE PALETTE ── */
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-panel: #f8fafc;
+
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-muted: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.18);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* ── ACCENT ── */
+  --accent: #1e40af;
+  --accent-glow: rgba(30, 64, 175, 0.15);
+  --accent-dim: rgba(30, 64, 175, 0.08);
+
+  /* ── SEMANTIC ── */
+  --success: #22c77a;
+  --warning: #f5a623;
+  --danger: #e84c4c;
+  --info: #1e40af;
+  --destructive: #e84c4c;
+
+  /* ── AGENCY COLORS ── */
+  --metrobus: #DC2626;
+  --metro: #F97316;
+  --rtp: #22C55E;
+  --trolebus: #3B82F6;
+  --cablebus: #8B5CF6;
+
+  /* ── RADIUS ── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-full: 999px;
+
+  /* ── SHADOW ── */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
+  --shadow-accent: 0 0 0 2px var(--accent-glow);
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06),
+    0px 1px 2px -1px rgba(0, 0, 0, 0.06),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.08),
+    0px 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.06);
+
+  /* ── LEGACY ALIASES (used by components) ── */
+  --background: var(--bg-base);
+  --surface: var(--bg-surface);
+  --surface-light: var(--bg-elevated);
+  --surface-hover: var(--bg-panel);
+  --border: var(--border-muted);
+  --border-light: var(--border-strong);
+  --foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-light: var(--accent);
+  --primary-dark: var(--accent);
+  --accent-red: var(--danger);
+  --accent-green: var(--success);
+  --accent-yellow: var(--warning);
+  --muted: var(--bg-elevated);
+  --muted-foreground: var(--text-muted);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --accent-foreground: #ffffff;
+}
+
+@theme inline {
+  /* Backgrounds */
+  --color-background: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-surface-light: var(--bg-elevated);
+  --color-surface-hover: var(--bg-panel);
+
+  /* Borders */
+  --color-border: var(--border-muted);
+  --color-border-light: var(--border-strong);
+  --color-border-subtle: var(--border-subtle);
+
+  /* Text */
+  --color-foreground: var(--text-primary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  /* Accent & Primary */
+  --color-primary: var(--accent);
+  --color-primary-light: var(--accent);
+  --color-accent: var(--accent);
+  --color-accent-foreground: #ffffff;
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-red: var(--danger);
+  --color-accent-green: var(--success);
+  --color-accent-yellow: var(--warning);
+
+  /* Semantic */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-destructive: var(--destructive);
+
+  /* Radix / shadcn aliases */
+  --color-muted: var(--bg-elevated);
+  --color-muted-foreground: var(--text-muted);
+  --color-popover: var(--bg-surface);
+  --color-popover-foreground: var(--text-primary);
+
+  /* Agency Colors */
+  --color-metrobus: var(--metrobus);
+  --color-metro: var(--metro);
+  --color-rtp: var(--rtp);
+  --color-trolebus: var(--trolebus);
+  --color-cablebus: var(--cablebus);
+
+  /* Typography */
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-dm-mono);
+
+  /* Border Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+/* ── TYPOGRAPHY SCALE ── */
+.text-display {
+  font-size: 2.125rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.text-h1 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.text-h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.text-body  { font-size: 0.9375rem; font-weight: 400; text-wrap: pretty; }
+.text-small { font-size: 0.8125rem; font-weight: 400; }
+
+.text-label {
+  font-family: var(--font-dm-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.text-mono {
+  font-family: var(--font-dm-mono);
+  font-size: 0.8125rem;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); border-radius: var(--radius-sm); }
+::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: var(--radius-sm); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── SHADOW UTILITIES ── */
+.shadow-border { box-shadow: var(--shadow-border); }
+.card-hover { box-shadow: var(--shadow-border); transition: box-shadow 150ms ease; }
+.card-hover:hover { box-shadow: var(--shadow-border-hover); }
+
+/* ── BADGE STYLES ── */
+.badge-accent   { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(30,64,175,0.25); }
+.badge-success  { background: rgba(34,199,122,0.10); color: var(--success); border: 1px solid rgba(34,199,122,0.25); }
+.badge-warning  { background: rgba(245,166,35,0.10); color: var(--warning); border: 1px solid rgba(245,166,35,0.25); }
+.badge-danger   { background: rgba(232,76,76,0.10); color: var(--danger); border: 1px solid rgba(232,76,76,0.25); }
+.badge-neutral  { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+
+/* ── CARD VARIANTS ── */
+.card-elevated      { background: var(--bg-elevated); border-color: var(--border-muted); box-shadow: var(--shadow-md); }
+.card-accent-border { border-color: var(--accent); box-shadow: var(--shadow-accent); }
