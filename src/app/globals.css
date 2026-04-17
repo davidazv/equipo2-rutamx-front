@@ -224,3 +224,13 @@ h1, h2, h3, h4, h5, h6 {
 /* ── CARD VARIANTS ── */
 .card-elevated      { background: var(--bg-elevated); border-color: var(--border-muted); box-shadow: var(--shadow-md); }
 .card-accent-border { border-color: var(--accent); box-shadow: var(--shadow-accent); }
+
+/* ── BUBBLE BACKGROUND ANIMATIONS ── */
+@keyframes bubble-bob {
+  0%, 100% { transform: translateY(-50px); }
+  50%       { transform: translateY(50px); }
+}
+@keyframes bubble-drift {
+  0%, 100% { transform: translateX(-50px); }
+  50%       { transform: translateX(50px); }
+}
