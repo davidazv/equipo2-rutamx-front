@@ -5,8 +5,6 @@ import { Info } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
-  getBusModels,
-  getRoutes,
   estimateRoi,
   type BusModelResponse,
   type RouteResponse,
@@ -15,40 +13,22 @@ import {
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-export function ROIComparisonCard({ className }: { className?: string }) {
-  const [busModels, setBusModels] = useState<BusModelResponse[]>([]);
-  const [routes, setRoutes] = useState<RouteResponse[]>([]);
-  const [selectedRoute, setSelectedRoute] = useState("");
-  const [selectedModel, setSelectedModel] = useState<number | null>(null);
+interface ROIComparisonCardProps {
+  busModels: BusModelResponse[];
+  routes: RouteResponse[];
+  className?: string;
+}
+
+export function ROIComparisonCard({ busModels, routes, className }: ROIComparisonCardProps) {
+  const [selectedRoute, setSelectedRoute] = useState(routes[0]?.routeId ?? "");
+  const [selectedModel, setSelectedModel] = useState<number | null>(
+    busModels[0]?.id ?? null
+  );
   const [buses, setBuses] = useState(10);
   const [showInfo, setShowInfo] = useState(false);
   const [est, setEst] = useState<RoiEstimateResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial data (bus models + routes)
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [models, routeData] = await Promise.all([
-          getBusModels(),
-          getRoutes(),
-        ]);
-        const electricModels = models.filter((m) => m.fuelType === "ELECTRIC");
-        setBusModels(electricModels);
-        setRoutes(routeData);
-        if (electricModels.length > 0) setSelectedModel(electricModels[0].id);
-        if (routeData.length > 0) setSelectedRoute(routeData[0].routeId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error cargando datos");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  // Fetch ROI estimate when parameters change
   const fetchRoi = useCallback(async () => {
     if (!selectedRoute || selectedModel === null || buses < 1) return;
     try {
@@ -62,8 +42,8 @@ export function ROIComparisonCard({ className }: { className?: string }) {
   }, [selectedRoute, selectedModel, buses]);
 
   useEffect(() => {
-    if (!loading) fetchRoi();
-  }, [fetchRoi, loading]);
+    fetchRoi();
+  }, [fetchRoi]);
 
   const fmt = (v: number) =>
     v >= 1_000_000
@@ -76,24 +56,6 @@ export function ROIComparisonCard({ className }: { className?: string }) {
   }));
 
   const maxROI = monthlyROI[11]?.roi ?? 1;
-
-  if (loading) {
-    return (
-      <Card className={cn(className)}>
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Cargando datos...
-        </div>
-      </Card>
-    );
-  }
-
-  if (error && busModels.length === 0) {
-    return (
-      <Card className={cn(className)}>
-        <div className="p-8 text-center text-sm text-destructive">{error}</div>
-      </Card>
-    );
-  }
 
   return (
     <Card className={cn(className)}>
