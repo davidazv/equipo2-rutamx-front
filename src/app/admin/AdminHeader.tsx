@@ -26,14 +26,6 @@ export default function AdminHeader() {
           <Shield className="h-5 w-5 text-primary-light" />
           <span className="font-semibold">Admin Panel</span>
         </div>
-        <nav className="flex items-center gap-4 ml-6">
-          <Link href="/admin/users" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-            Usuarios
-          </Link>
-          <Link href="/admin/upload" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-            Carga de Datos
-          </Link>
-        </nav>
         <div className="ml-auto flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

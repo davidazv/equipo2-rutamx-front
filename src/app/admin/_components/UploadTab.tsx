@@ -1,6 +1,6 @@
 "use client";
 
-import UploadCard from "./components/UploadCard";
+import UploadCard from "./UploadCard";
 
 const TIER_0 = [
   {
@@ -65,17 +65,9 @@ const TIER_3 = [
   },
 ];
 
-export default function UploadPage() {
+export default function UploadTab() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Carga de Datos GTFS</h1>
-        <p className="text-muted-foreground mt-1">
-          Sube archivos CSV para poblar las tablas de datos. Respeta el orden de
-          dependencias: primero las tablas base, luego las dependientes.
-        </p>
-      </div>
-
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Sin dependencias</h2>
         <p className="text-sm text-muted-foreground">
