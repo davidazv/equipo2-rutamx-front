@@ -1,22 +1,19 @@
-import type { Metadata } from 'next'
-import AdminHeader from './AdminHeader'
-
-// Swap this constant with a real auth context when auth is implemented.
-export const mockCurrentRole = 'ADMIN'
+import type { Metadata } from "next";
+import AdminHeader from "./AdminHeader";
 
 export const metadata: Metadata = {
-  title: 'Admin Panel — RutaMX',
-}
+  title: "Admin Panel — RutaMX",
+};
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <div className="min-h-screen bg-background">
       <AdminHeader />
-      <main>{children}</main>
+      <main className="container mx-auto px-6 py-6">{children}</main>
     </div>
-  )
+  );
 }
