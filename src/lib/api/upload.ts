@@ -8,6 +8,21 @@ export interface CsvImportResult {
   tableName: string;
 }
 
+export interface TableEntry {
+  rowCount: number;
+  uploadedAt: string | null;
+}
+
+export type TableStatus = Record<string, TableEntry>;
+
+export async function fetchTableStatus(): Promise<TableStatus> {
+  const res = await fetch(`${API_BASE}/admin/upload/status`);
+  if (!res.ok) {
+    throw new Error("Error al obtener estado de tablas");
+  }
+  return res.json();
+}
+
 export async function uploadCsv(
   tableName: string,
   file: File

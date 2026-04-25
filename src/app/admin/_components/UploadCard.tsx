@@ -1,29 +1,52 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Upload,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { uploadCsv, type CsvImportResult } from "@/lib/api/upload";
 
 interface UploadCardProps {
   tableName: string;
   displayName: string;
-  description: string;
+  rowCount: number;
+  uploadedAt: string | null;
+  onUploaded: (tableName: string, rowCount: number) => void;
   accept?: string;
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function UploadCard({
   tableName,
   displayName,
-  description,
+  rowCount,
+  uploadedAt,
+  onUploaded,
   accept = ".csv,.txt",
 }: UploadCardProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CsvImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fileSelected, setFileSelected] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const hasData = rowCount > 0;
 
   async function handleUpload() {
     const file = fileRef.current?.files?.[0];
@@ -36,6 +59,9 @@ export default function UploadCard({
     try {
       const res = await uploadCsv(tableName, file);
       setResult(res);
+      onUploaded(tableName, res.importedRows);
+      setFileSelected(false);
+      if (fileRef.current) fileRef.current.value = "";
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error desconocido");
     } finally {
@@ -46,36 +72,53 @@ export default function UploadCard({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          {displayName}
-          {result && result.errors.length === 0 && (
-            <CheckCircle className="h-4 w-4 text-green-500" />
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            {displayName}
+            {result && result.errors.length === 0 && (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            )}
+            {(error || (result && result.errors.length > 0)) && (
+              <AlertCircle className="h-4 w-4 text-yellow-500" />
+            )}
+          </CardTitle>
+          {uploadedAt && (
+            <span className="text-xs text-muted-foreground">
+              {formatDate(uploadedAt)}
+            </span>
           )}
-          {(error || (result && result.errors.length > 0)) && (
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
-          )}
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {!hasData && !result && (
+          <p className="text-sm text-muted-foreground italic">
+            Sin datos — selecciona un archivo para cargar.
+          </p>
+        )}
+
         <div className="flex items-center gap-2">
           <input
             ref={fileRef}
             type="file"
             accept={accept}
+            onChange={() =>
+              setFileSelected(!!fileRef.current?.files?.length)
+            }
             className="flex-1 text-sm file:mr-2 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium"
           />
           <Button
             onClick={handleUpload}
-            disabled={loading}
+            disabled={loading || !fileSelected}
             size="sm"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : hasData ? (
+              <RefreshCw className="h-4 w-4" />
             ) : (
               <Upload className="h-4 w-4" />
             )}
-            {loading ? "Cargando..." : "Subir"}
+            {loading ? "Cargando..." : hasData ? "Actualizar" : "Subir"}
           </Button>
         </div>
 
