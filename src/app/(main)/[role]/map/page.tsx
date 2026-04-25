@@ -5,30 +5,28 @@ import {
   getRoutesWithShapes,
   type RouteWithShapes,
 } from "@/lib/api/energy";
-import { getAgencies, type AgencyResponse } from "@/lib/api/agencies";
+import {
+  getAgenciesWithColors,
+  type AgencyWithColorsResponse,
+} from "@/lib/api/agencies";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
-import { getAgencyFallback } from "@/constants/agency-colors";
+import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
 import { MapContainer } from "./_components/map-container";
 import { RouteList } from "./_components/route-list";
 import { EnergyConsumptionCalculator } from "./_components/energy-consumption-calculator";
 
-function resolveColor(route: RouteWithShapes, _index: number): string {
-  if (route.routeColor) return `#${route.routeColor}`;
-  return getAgencyFallback(route.agencyId);
-}
-
 export default function MapPage() {
   const [routes, setRoutes] = useState<RouteWithShapes[]>([]);
-  const [agencies, setAgencies] = useState<AgencyResponse[]>([]);
+  const [agencies, setAgencies] = useState<AgencyWithColorsResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [selectedAgencyId, setSelectedAgencyId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getRoutesWithShapes(), getAgencies()])
+    Promise.all([getRoutesWithShapes(), getAgenciesWithColors()])
       .then(([routesData, agenciesData]) => {
         setRoutes(routesData);
         setAgencies(agenciesData);
@@ -44,6 +42,22 @@ export default function MapPage() {
       )
       .finally(() => setLoading(false));
   }, []);
+
+  const agencyColorMap = useMemo(() => {
+    const map = new Map<string, AgencyWithColorsResponse>();
+    for (const a of agencies) map.set(a.agencyId, a);
+    return map;
+  }, [agencies]);
+
+  const resolveColor = useCallback(
+    (route: RouteWithShapes, _index: number): string => {
+      if (route.routeColor) return `#${route.routeColor}`;
+      const agency = agencyColorMap.get(route.agencyId);
+      if (agency?.agencyColor) return `#${agency.agencyColor}`;
+      return DEFAULT_ROUTE_COLOR;
+    },
+    [agencyColorMap]
+  );
 
   const agencyRoutes = useMemo(
     () =>
@@ -118,6 +132,7 @@ export default function MapPage() {
             selectedRouteId={selectedRouteId}
             getRouteColor={resolveColor}
             visibleAgencyIds={visibleAgencyIds}
+            agencies={agencies}
           />
         </div>
       </div>

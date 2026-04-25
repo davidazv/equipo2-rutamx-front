@@ -17,7 +17,7 @@ export default function AdminHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface">
       <div className="flex h-14 items-center px-6">
-        <Link href="/dashboard" className="flex items-center mr-8">
+        <Link href="/admin" className="flex items-center mr-8">
           <span className="text-xl font-bold text-foreground">
             Ruta<span className="text-primary-light">MX</span>
           </span>
@@ -26,6 +26,14 @@ export default function AdminHeader() {
           <Shield className="h-5 w-5 text-primary-light" />
           <span className="font-semibold">Admin Panel</span>
         </div>
+        <nav className="flex items-center gap-4 ml-6">
+          <Link href="/admin/users" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            Usuarios
+          </Link>
+          <Link href="/admin/upload" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            Carga de Datos
+          </Link>
+        </nav>
         <div className="ml-auto flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

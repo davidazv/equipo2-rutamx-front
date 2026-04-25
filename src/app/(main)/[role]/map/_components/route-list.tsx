@@ -13,18 +13,22 @@ import {
 } from "@/components/ui/select";
 import { cn, formatNumber } from "@/lib/utils";
 import type { RouteWithShapes } from "@/lib/api/energy";
-import type { AgencyResponse } from "@/lib/api/agencies";
-import {
-  AGENCY_COLOR_INFO,
-  DEFAULT_ROUTE_COLOR,
-} from "@/constants/agency-colors";
+import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
+import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
+import { varyColor, ensureContrast } from "@/lib/map/color-utils";
+
+function getAgencyDisplayColor(agency: AgencyWithColorsResponse): string {
+  if (agency.agencyColor) return `#${agency.agencyColor}`;
+  if (agency.sampleRouteColors?.length) return `#${agency.sampleRouteColors[0]}`;
+  return DEFAULT_ROUTE_COLOR;
+}
 
 interface RouteListProps {
   routes: RouteWithShapes[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string | null) => void;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
-  agencies: AgencyResponse[];
+  agencies: AgencyWithColorsResponse[];
   selectedAgencyId: string | null;
   onAgencyChange: (agencyId: string) => void;
 }
@@ -58,30 +62,26 @@ export function RouteList({
             </SelectTrigger>
             <SelectContent>
               {agencies.map((agency) => {
-                const info = AGENCY_COLOR_INFO[agency.agencyId];
-                const multi =
-                  info?.sampleColors && info.sampleColors.length > 1;
+                const colors = agency.sampleRouteColors ?? [];
+                const fallback = ensureContrast(getAgencyDisplayColor(agency));
 
                 return (
                   <SelectItem key={agency.agencyId} value={agency.agencyId}>
                     <span className="flex items-center gap-2">
-                      {multi ? (
+                      {agency.multiColor && colors.length > 1 ? (
                         <span className="flex gap-0.5 flex-shrink-0">
-                          {info.sampleColors!.slice(0, 3).map((c, i) => (
+                          {colors.slice(0, 3).map((c, i) => (
                             <span
                               key={i}
                               className="h-2 w-2 rounded-full"
-                              style={{ backgroundColor: c }}
+                              style={{ backgroundColor: ensureContrast(`#${c}`) }}
                             />
                           ))}
                         </span>
                       ) : (
                         <span
                           className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                          style={{
-                            backgroundColor:
-                              info?.fallback ?? DEFAULT_ROUTE_COLOR,
-                          }}
+                          style={{ backgroundColor: fallback }}
                         />
                       )}
                       {agency.agencyName}
@@ -112,7 +112,8 @@ export function RouteList({
           <div className="divide-y divide-border">
             {filteredRoutes.map((route, idx) => {
               const isSelected = selectedRouteId === route.routeId;
-              const color = getRouteColor(route, idx);
+              const baseColor = getRouteColor(route, idx);
+              const color = ensureContrast(varyColor(baseColor, route.routeId));
 
               return (
                 <button

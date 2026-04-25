@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { RouteWithShapes } from "@/lib/api/energy";
+import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
 import { Spinner } from "@/components/ui/spinner";
 
 interface MapContainerProps {
@@ -9,6 +10,7 @@ interface MapContainerProps {
   selectedRouteId: string | null;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   visibleAgencyIds: string[];
+  agencies: AgencyWithColorsResponse[];
 }
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
@@ -19,6 +21,7 @@ interface MapInnerProps {
   mapboxToken: string;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   visibleAgencyIds: string[];
+  agencies: AgencyWithColorsResponse[];
 }
 
 export function MapContainer({
@@ -26,6 +29,7 @@ export function MapContainer({
   selectedRouteId,
   getRouteColor,
   visibleAgencyIds,
+  agencies,
 }: MapContainerProps) {
   const [MapComponent, setMapComponent] =
     useState<React.ComponentType<MapInnerProps> | null>(null);
@@ -66,6 +70,7 @@ export function MapContainer({
       mapboxToken={MAPBOX_TOKEN}
       getRouteColor={getRouteColor}
       visibleAgencyIds={visibleAgencyIds}
+      agencies={agencies}
     />
   );
 }

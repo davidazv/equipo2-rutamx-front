@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, Zap, AlertTriangle, CheckCircle } from "lucide-react";
+import { Users, Zap, AlertTriangle, CheckCircle, Repeat } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -242,6 +242,25 @@ export function EnergyConsumptionCalculator({
           </span>
           <span className="text-sm font-medium">
             {calculating ? "..." : result ? `${formatNumber(result.remainingRangeKm)} km` : "-- km"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <Repeat className="h-3 w-3" />
+            Viajes ida y vuelta
+          </span>
+          <span className="text-sm font-bold text-primary">
+            {calculating
+              ? "..."
+              : result
+                ? (() => {
+                    const consumptionPerTrip = 100 - result.batteryPercentAfter;
+                    if (consumptionPerTrip <= 0) return "--";
+                    const roundTrips = Math.floor(100 / (2 * consumptionPerTrip));
+                    return roundTrips;
+                  })()
+                : "--"}
           </span>
         </div>
 

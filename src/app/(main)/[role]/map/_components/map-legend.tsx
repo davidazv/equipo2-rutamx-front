@@ -2,22 +2,28 @@
 
 import { useState } from "react";
 import { Info, X } from "lucide-react";
-import {
-  AGENCY_COLOR_INFO,
-  DEFAULT_ROUTE_COLOR,
-} from "@/constants/agency-colors";
+import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
+import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
+import { ensureContrast } from "@/lib/map/color-utils";
+
+function getAgencyDisplayColor(agency: AgencyWithColorsResponse): string {
+  if (agency.agencyColor) return `#${agency.agencyColor}`;
+  if (agency.sampleRouteColors?.length) return `#${agency.sampleRouteColors[0]}`;
+  return DEFAULT_ROUTE_COLOR;
+}
 
 interface MapLegendProps {
   visibleAgencyIds: string[];
+  agencies: AgencyWithColorsResponse[];
 }
 
-export function MapLegend({ visibleAgencyIds }: MapLegendProps) {
+export function MapLegend({ visibleAgencyIds, agencies }: MapLegendProps) {
   const [open, setOpen] = useState(false);
 
-  const agencies =
+  const visible =
     visibleAgencyIds.length > 0
-      ? visibleAgencyIds
-      : Object.keys(AGENCY_COLOR_INFO);
+      ? agencies.filter((a) => visibleAgencyIds.includes(a.agencyId))
+      : agencies;
 
   return (
     <div className="absolute top-3 left-3 z-10">
@@ -51,39 +57,30 @@ export function MapLegend({ visibleAgencyIds }: MapLegendProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            {agencies.map((id) => {
-              const info = AGENCY_COLOR_INFO[id];
-              if (!info) return null;
-              const multi = info.sampleColors && info.sampleColors.length > 1;
+            {visible.map((agency) => {
+              const colors = agency.sampleRouteColors ?? [];
+              const fallback = ensureContrast(getAgencyDisplayColor(agency));
 
               return (
-                <div key={id} className="flex items-center gap-2">
-                  {multi ? (
+                <div key={agency.agencyId} className="flex items-center gap-2">
+                  {agency.multiColor && colors.length > 1 ? (
                     <div className="flex gap-0.5 flex-shrink-0">
-                      {info.sampleColors!.slice(0, 4).map((c, i) => (
+                      {colors.slice(0, 4).map((c, i) => (
                         <div
                           key={i}
                           className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: c }}
+                          style={{ backgroundColor: ensureContrast(`#${c}`) }}
                         />
                       ))}
                     </div>
                   ) : (
                     <div
                       className="h-3 w-8 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor: info.fallback ?? DEFAULT_ROUTE_COLOR,
-                      }}
+                      style={{ backgroundColor: fallback }}
                     />
                   )}
                   <span className="text-xs text-foreground">
-                    {info.displayName}
-                    {info.description && (
-                      <span className="text-muted-foreground">
-                        {" — "}
-                        {info.description}
-                      </span>
-                    )}
+                    {agency.agencyName}
                   </span>
                 </div>
               );
