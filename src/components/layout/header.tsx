@@ -14,50 +14,52 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCurrentRole, type DashboardRole } from "@/hooks/use-current-role";
 
-const navItems = [
-  { href: "/dashboard", label: "Tablero", icon: LayoutDashboard },
-  { href: "/map", label: "Mapa", icon: Map },
-  { href: "/fleet", label: "Flota", icon: Bus },
+const NAV_ITEMS = [
+  { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
+  { key: "/map",       label: "Mapa",    icon: Map },
+  { key: "/fleet",     label: "Flota",   icon: Bus },
 ];
 
-interface HeaderProps {
-  userName?: string;
-  userEmail?: string;
-  userAvatar?: string;
-}
+const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
+  ceo:   new Set(["/dashboard", "/map", "/fleet"]),
+  coo:   new Set(["/dashboard", "/map", "/fleet"]),
+  cmo:   new Set(["/dashboard", "/map"]),
+  admin: new Set(["/dashboard", "/map", "/fleet"]),
+};
 
-export function Header({
-  userName = "Usuario",
-  userEmail = "usuario@rutamx.com",
-  userAvatar = "",
-}: HeaderProps) {
+export function Header() {
   const pathname = usePathname();
+  const role = useCurrentRole();
+
+  const allowedKeys = NAV_ALLOWED_BY_ROLE[role];
+  const navItems = NAV_ITEMS.filter((item) => allowedKeys.has(item.key));
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80">
       <div className="flex h-16 items-center px-6">
-        <Link href="/dashboard" className="flex items-center mr-8">
-          <span className="text-xl font-bold">
-            Ruta<span className="text-primary">MX</span>
+        <Link href={`/${role}/dashboard`} className="flex items-center mr-8">
+          <span className="text-xl font-bold text-foreground">
+            Ruta<span className="text-primary-light">MX</span>
           </span>
         </Link>
 
         <nav className="flex items-center gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const href = `/${role}${item.key}`;
+            const isActive = pathname === href || pathname.startsWith(href + "/");
 
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.key}
+                href={href}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-primary-light/10 text-primary-light"
+                    : "text-text-secondary hover:text-foreground hover:bg-surface-light",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -72,31 +74,33 @@ export function Header({
             <DropdownMenuTrigger asChild>
               <Button className="relative h-10 w-10 rounded-full" variant="ghost">
                 <Avatar>
-                  <AvatarImage alt={userName} src={userAvatar} />
-                  <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage alt="Usuario" src="" />
+                  <AvatarFallback>U</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent align="end" className="w-64 bg-background/50 backdrop-blur-md">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="font-medium text-sm leading-none">{userName}</p>
-                  <p className="text-muted-foreground text-xs leading-none">{userEmail}</p>
+                  <p className="font-medium text-sm leading-none">Usuario</p>
+                  <p className="text-muted-foreground text-xs leading-none">usuario@rutamx.com</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
+                <User />
                 Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Configuración
+              <DropdownMenuItem asChild>
+                <Link href="/configuracion">
+                  <Settings />
+                  Configuracion
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Cerrar Sesión
+                <LogOut />
+                Cerrar Sesion
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

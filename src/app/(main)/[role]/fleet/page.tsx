@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
 interface BusModel {
   id: string;
   modelName: string;
@@ -139,16 +137,12 @@ const BUS_MODELS: BusModel[] = [
   },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function fmt(value: number, decimals = 0): string {
   return new Intl.NumberFormat("es-MX", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FleetPage() {
   const [selectedBusId, setSelectedBusId] = useState<string | null>(null);
@@ -158,18 +152,17 @@ export default function FleetPage() {
     : null;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Fleet Analytics</h1>
         <p className="text-sm text-text-secondary">
-          Análisis y comparación de modelos de buses eléctricos
+          Analisis y comparacion de modelos de buses electricos
         </p>
       </div>
 
-      {/* Tabla comparativa */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Comparación de Modelos de Bus</CardTitle>
+          <CardTitle className="text-base">Comparacion de Modelos de Bus</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -179,11 +172,11 @@ export default function FleetPage() {
                   <TableHead>Modelo</TableHead>
                   <TableHead>Fabricante</TableHead>
                   <TableHead className="text-right">Rango</TableHead>
-                  <TableHead className="text-right">Batería</TableHead>
+                  <TableHead className="text-right">Bateria</TableHead>
                   <TableHead className="text-right">Consumo</TableHead>
                   <TableHead className="text-right">Capacidad</TableHead>
                   <TableHead className="text-right">Costo</TableHead>
-                  <TableHead className="text-right">Garantía</TableHead>
+                  <TableHead className="text-right">Garantia</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -206,7 +199,7 @@ export default function FleetPage() {
                     <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
                     <TableCell className="text-right">${fmt(bus.unitCostUsd / 1000)}K</TableCell>
                     <TableCell className="text-right">
-                      <Badge variant="outline">{bus.warrantyYears} años</Badge>
+                      <Badge variant="outline">{bus.warrantyYears} anos</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -216,7 +209,6 @@ export default function FleetPage() {
         </CardContent>
       </Card>
 
-      {/* Panel de detalle al seleccionar una fila */}
       {selectedBus && (
         <Card className="border-primary/50">
           <CardHeader>
@@ -233,7 +225,7 @@ export default function FleetPage() {
                   Dimensiones
                 </p>
                 <p className="text-sm">
-                  {selectedBus.lengthMeters}m × {selectedBus.widthMeters}m ×{" "}
+                  {selectedBus.lengthMeters}m x {selectedBus.widthMeters}m x{" "}
                   {selectedBus.heightMeters}m
                 </p>
               </div>
