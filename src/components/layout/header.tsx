@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, Map, Bus, Settings, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,13 @@ const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const role = useCurrentRole();
+
+  function handleSignOut() {
+    signOut();
+    router.push("/login");
+  }
 
   const allowedKeys = NAV_ALLOWED_BY_ROLE[role];
   const navItems = NAV_ITEMS.filter((item) => allowedKeys.has(item.key));
@@ -98,9 +105,9 @@ export function Header() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
+              <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
                 <LogOut />
-                Cerrar Sesion
+                Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

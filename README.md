@@ -16,6 +16,12 @@ NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key_aqui
 > Cada integrante del equipo debe crear su propio archivo local con los valores correctos.
 > Pídele la API key a quien administre el proyecto de Firebase.
 
+## Dependencias destacadas
+
+| Paquete | Uso |
+|---|---|
+| `framer-motion` | Animaciones del mapa en la pantalla de login (línea del Trolebús, vehículo en movimiento, ping rings) |
+
 ## Getting Started
 
 Primero instala las dependencias:
