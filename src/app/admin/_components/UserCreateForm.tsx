@@ -19,13 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createUser } from '@/lib/api/users'
-import type { User, Role, UserStatus } from '@/lib/api/users'
+import type { User, Role } from '@/lib/api/users'
 
 interface UserFormData {
   fullName: string
   email: string
   role: Role
-  status: UserStatus
   password: string
   confirmPassword: string
 }
@@ -34,7 +33,6 @@ const EMPTY_FORM: UserFormData = {
   fullName: '',
   email: '',
   role: 'ADMIN',
-  status: 'ACTIVE',
   password: '',
   confirmPassword: '',
 }
@@ -82,8 +80,10 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
     }
     if (!form.password) {
       errors.password = 'La contraseña es obligatoria.'
-    } else if (form.password.length < 6) {
-      errors.password = 'Mínimo 6 caracteres.'
+    } else if (form.password.length < 8) {
+      errors.password = 'Mínimo 8 caracteres.'
+    } else if (!/[A-Z]/.test(form.password) || !/\d/.test(form.password)) {
+      errors.password = 'Debe incluir al menos una mayúscula y un número.'
     }
     if (form.password !== form.confirmPassword) {
       errors.confirmPassword = 'Las contraseñas no coinciden.'
@@ -103,7 +103,6 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
         lastName,
         email: form.email,
         role: form.role,
-        status: form.status,
         password: form.password,
       })
       onCreated(user)
@@ -170,46 +169,27 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
             </div>
           </section>
 
-          {/* ── Rol y Estado ───────────────────────────────────────────── */}
+          {/* ── Rol ───────────────────────────────────────────────────── */}
           <section className="flex flex-col gap-3 border-t border-border pt-4">
-            <p className="text-sm font-medium text-foreground">Rol y Estado</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Rol</label>
-                <Select
-                  value={form.role}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, role: v as Role }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                    <SelectItem value="CEO">CEO</SelectItem>
-                    <SelectItem value="COO">COO</SelectItem>
-                    <SelectItem value="CMO">CMO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Estado</label>
-                <Select
-                  value={form.status}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, status: v as UserStatus }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Activo</SelectItem>
-                    <SelectItem value="SUSPENDED">Suspendido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <p className="text-sm font-medium text-foreground">Rol</p>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-text-secondary">Rol</label>
+              <Select
+                value={form.role}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, role: v as Role }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="CEO">CEO</SelectItem>
+                  <SelectItem value="COO">COO</SelectItem>
+                  <SelectItem value="CMO">CMO</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </section>
 

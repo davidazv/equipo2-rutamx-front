@@ -1,148 +1,138 @@
-/**
- * User service — all functions are typed for the real API shape.
- * Currently resolves from in-memory mock data. Replace the body of
- * each function with a real fetch() call when the backend is ready.
- */
+import { apiFetch } from '@/lib/api/client'
 
-import {
-  User,
-  Role,
-  UserStatus,
-  mockUsers,
-  suspensionLogs,
-  getNextId,
-} from '@/lib/mock/users'
+export type Role = 'ADMIN' | 'CEO' | 'COO' | 'CMO'
+export type UserStatus = 'ACTIVE' | 'SUSPENDED'
 
-export type { User, Role, UserStatus }
+export interface User {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  role: Role
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
+}
 
 export interface CreateUserInput {
   firstName: string
   lastName: string
   email: string
   role: Role
-  status: UserStatus
   password: string
 }
 
 export interface UpdateUserInput {
   firstName?: string
   lastName?: string
-  email?: string
   role?: Role
-  status?: UserStatus
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function delay(ms = 150): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+// Matches DB seed insert order: ADMIN=1, CEO=2, COO=3, CMO=4
+const ROLE_ID: Record<Role, number> = {
+  ADMIN: 1,
+  CEO: 2,
+  COO: 3,
+  CMO: 4,
 }
 
-function now(): string {
-  return new Date().toISOString()
+interface RawUser {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  roleId: number
+  roleName: string
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
+}
+
+function normalize(raw: RawUser): User {
+  return {
+    id: raw.id,
+    email: raw.email,
+    firstName: raw.firstName,
+    lastName: raw.lastName,
+    role: raw.roleName as Role,
+    status: raw.status,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  }
 }
 
 // ── Read ───────────────────────────────────────────────────────────────────
 
 export async function getUsers(): Promise<User[]> {
-  await delay()
-  return [...mockUsers]
+  const res = await apiFetch('/admin/users')
+  if (!res.ok) throw new Error('FETCH_FAILED')
+  const data: RawUser[] = await res.json()
+  return data.map(normalize)
 }
 
 // ── HU01 – Create user ─────────────────────────────────────────────────────
 
 export async function createUser(input: CreateUserInput): Promise<User> {
-  await delay()
-
-  const duplicate = mockUsers.find(
-    (u) => u.email.toLowerCase() === input.email.toLowerCase()
-  )
-  if (duplicate) {
-    throw new Error('EMAIL_TAKEN')
-  }
-
-  const user: User = {
-    id: getNextId(),
-    email: input.email,
-    firstName: input.firstName,
-    lastName: input.lastName,
-    role: input.role,
-    status: input.status,
-    createdAt: now(),
-    updatedAt: now(),
-  }
-
-  mockUsers.push(user)
-  return { ...user }
+  const res = await apiFetch('/admin/users', {
+    method: 'POST',
+    body: JSON.stringify({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email,
+      password: input.password,
+      roleId: ROLE_ID[input.role],
+    }),
+  })
+  if (res.status === 409) throw new Error('EMAIL_TAKEN')
+  if (!res.ok) throw new Error('CREATE_FAILED')
+  const raw: RawUser = await res.json()
+  return normalize(raw)
 }
 
 // ── HU02 – Update user ─────────────────────────────────────────────────────
 
-export async function updateUser(
-  id: number,
-  input: UpdateUserInput
-): Promise<User> {
-  await delay()
+export async function updateUser(id: number, input: UpdateUserInput): Promise<User> {
+  const body: Record<string, unknown> = {}
+  if (input.firstName !== undefined) body.firstName = input.firstName
+  if (input.lastName !== undefined) body.lastName = input.lastName
+  if (input.role !== undefined) body.roleId = ROLE_ID[input.role]
 
-  const idx = mockUsers.findIndex((u) => u.id === id)
-  if (idx === -1) throw new Error('USER_NOT_FOUND')
-
-  if (input.email) {
-    const duplicate = mockUsers.find(
-      (u) =>
-        u.email.toLowerCase() === input.email!.toLowerCase() && u.id !== id
-    )
-    if (duplicate) throw new Error('EMAIL_TAKEN')
-  }
-
-  const updated: User = {
-    ...mockUsers[idx],
-    ...input,
-    updatedAt: now(),
-  }
-
-  mockUsers[idx] = updated
-  return { ...updated }
+  const res = await apiFetch(`/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('UPDATE_FAILED')
+  const raw: RawUser = await res.json()
+  return normalize(raw)
 }
 
 // ── HU03 – Delete user ─────────────────────────────────────────────────────
 
 export async function deleteUser(id: number): Promise<void> {
-  await delay()
-
-  const idx = mockUsers.findIndex((u) => u.id === id)
-  if (idx === -1) throw new Error('USER_NOT_FOUND')
-
-  mockUsers.splice(idx, 1)
+  const res = await apiFetch(`/admin/users/${id}`, { method: 'DELETE' })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('DELETE_FAILED')
 }
 
 // ── HU04 – Suspend user ────────────────────────────────────────────────────
 
-export async function suspendUser(
-  id: number,
-  reason: string
-): Promise<User> {
-  await delay()
-
-  const idx = mockUsers.findIndex((u) => u.id === id)
-  if (idx === -1) throw new Error('USER_NOT_FOUND')
-
-  mockUsers[idx] = { ...mockUsers[idx], status: 'SUSPENDED', updatedAt: now() }
-
-  suspensionLogs.push({ userId: id, date: now(), reason })
-
-  return { ...mockUsers[idx] }
+// Note: the backend endpoint does not accept a reason body.
+// The reason is shown in the UI confirmation only.
+export async function suspendUser(id: number, _reason: string): Promise<User> {
+  const res = await apiFetch(`/admin/users/${id}/suspend`, { method: 'PATCH' })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('SUSPEND_FAILED')
+  const raw: RawUser = await res.json()
+  return normalize(raw)
 }
 
 // ── HU04 – Reinstate (unsuspend) user ──────────────────────────────────────
 
 export async function reinstateUser(id: number): Promise<User> {
-  await delay()
-
-  const idx = mockUsers.findIndex((u) => u.id === id)
-  if (idx === -1) throw new Error('USER_NOT_FOUND')
-
-  mockUsers[idx] = { ...mockUsers[idx], status: 'ACTIVE', updatedAt: now() }
-
-  return { ...mockUsers[idx] }
+  const res = await apiFetch(`/admin/users/${id}/activate`, { method: 'PATCH' })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('ACTIVATE_FAILED')
+  const raw: RawUser = await res.json()
+  return normalize(raw)
 }
