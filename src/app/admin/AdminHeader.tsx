@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Shield, LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -14,6 +16,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AdminHeader() {
+  const router = useRouter();
+
+  function handleSignOut() {
+    signOut();
+    router.push("/login");
+  }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface">
       <div className="flex h-14 items-center px-6">
@@ -63,9 +72,9 @@ export default function AdminHeader() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
+              <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
                 <LogOut />
-                Cerrar Sesion
+                Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
