@@ -18,13 +18,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { updateUser } from '@/lib/api/users'
-import type { User, Role, UserStatus } from '@/lib/api/users'
+import type { User, Role } from '@/lib/api/users'
 
 interface UserFormData {
   fullName: string
   email: string
   role: Role
-  status: UserStatus
 }
 
 function splitFullName(fullName: string): { firstName: string; lastName: string } {
@@ -46,7 +45,6 @@ export function UserEditModal({ user, onClose, onUpdated, addToast }: Props) {
     fullName: '',
     email: '',
     role: 'ADMIN',
-    status: 'ACTIVE',
   })
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof UserFormData, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -57,7 +55,6 @@ export function UserEditModal({ user, onClose, onUpdated, addToast }: Props) {
         fullName: `${user.firstName} ${user.lastName}`.trim(),
         email: user.email,
         role: user.role,
-        status: user.status,
       })
       setFormErrors({})
     }
@@ -88,9 +85,7 @@ export function UserEditModal({ user, onClose, onUpdated, addToast }: Props) {
       const updated = await updateUser(user.id, {
         firstName,
         lastName,
-        email: form.email,
         role: form.role,
-        status: form.status,
       })
       onUpdated(updated)
       onClose()
@@ -141,66 +136,41 @@ export function UserEditModal({ user, onClose, onUpdated, addToast }: Props) {
               )}
             </div>
 
-            {/* Correo */}
+            {/* Correo (solo lectura — el back no soporta cambio de email) */}
             <div className="flex flex-col gap-1">
               <label className="text-sm text-text-secondary">
                 Correo electrónico
               </label>
               <Input
                 type="email"
-                placeholder="correo@rutamx.com"
                 value={form.email}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, email: e.target.value }))
-                  setFormErrors((fe) => ({ ...fe, email: undefined }))
-                }}
+                disabled
+                className="opacity-60 cursor-not-allowed"
               />
-              {formErrors.email && (
-                <p className="text-xs text-danger">{formErrors.email}</p>
-              )}
             </div>
           </section>
 
-          {/* ── Rol y Estado ───────────────────────────────────────────── */}
+          {/* ── Rol ───────────────────────────────────────────────────── */}
           <section className="flex flex-col gap-3 border-t border-border pt-4">
-            <p className="text-sm font-medium text-foreground">Rol y Estado</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Rol</label>
-                <Select
-                  value={form.role}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, role: v as Role }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                    <SelectItem value="CEO">CEO</SelectItem>
-                    <SelectItem value="COO">COO</SelectItem>
-                    <SelectItem value="CMO">CMO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Estado</label>
-                <Select
-                  value={form.status}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, status: v as UserStatus }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Activo</SelectItem>
-                    <SelectItem value="SUSPENDED">Suspendido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <p className="text-sm font-medium text-foreground">Rol</p>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-text-secondary">Rol</label>
+              <Select
+                value={form.role}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, role: v as Role }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="CEO">CEO</SelectItem>
+                  <SelectItem value="COO">COO</SelectItem>
+                  <SelectItem value="CMO">CMO</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </section>
         </div>
