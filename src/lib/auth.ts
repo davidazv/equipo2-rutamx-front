@@ -4,6 +4,7 @@ if (!FIREBASE_API_KEY) throw new Error('NEXT_PUBLIC_FIREBASE_API_KEY no está co
 const FIREBASE_SIGN_IN_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`
 
 export const TOKEN_KEY = 'rutamx_id_token'
+export const ROLE_KEY = 'rutamx_role'
 
 interface FirebaseSignInResponse {
   idToken: string
@@ -39,6 +40,15 @@ export async function signIn(email: string, password: string): Promise<string> {
 
 export function signOut(): void {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(ROLE_KEY)
+}
+
+export function saveRole(role: string): void {
+  localStorage.setItem(ROLE_KEY, role.toLowerCase())
+}
+
+export function getRole(): string | null {
+  return localStorage.getItem(ROLE_KEY)
 }
 
 export function getToken(): string | null {
