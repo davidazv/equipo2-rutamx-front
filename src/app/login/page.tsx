@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { signIn, getToken } from "@/lib/auth";
+import { signIn, getToken, saveRole } from "@/lib/auth";
 
 /* ── Station data ── */
 type Station = {
@@ -82,6 +82,7 @@ export default function LoginPage() {
             CMO:   "/cmo/dashboard",
           };
           if (me?.roleName && roleRoutes[me.roleName]) {
+            saveRole(me.roleName);
             destination = roleRoutes[me.roleName];
           }
         }
