@@ -48,6 +48,7 @@ export function saveRole(role: string): void {
 }
 
 export function getRole(): string | null {
+  if (typeof window === 'undefined') return null
   return localStorage.getItem(ROLE_KEY)
 }
 
