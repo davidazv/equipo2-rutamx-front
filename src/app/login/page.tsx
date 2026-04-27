@@ -63,7 +63,7 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
 
-      let destination = "/dashboard";
+      let destination: string | null = null;
       const token = getToken();
       if (token) {
         const currentEmail = emailFromToken(token);
@@ -86,6 +86,10 @@ export default function LoginPage() {
             destination = roleRoutes[me.roleName];
           }
         }
+      }
+
+      if (!destination) {
+        throw new Error("No se pudo determinar tu rol. Contacta al administrador.");
       }
 
       router.push(destination);
@@ -310,7 +314,7 @@ export default function LoginPage() {
 
           {/* Bottom branding */}
           <div className="relative z-10 px-8 pb-8 pt-2">
-            <h2 className="font-serif text-3xl font-bold text-white leading-snug tracking-tight">
+            <h2 className="font-sans text-4xl font-bold text-white leading-snug tracking-tight">
               Movilidad inteligente<br />para la capital.
             </h2>
             <p className="text-slate-500 text-xs mt-2 leading-relaxed">
@@ -344,7 +348,7 @@ export default function LoginPage() {
 
         {/* Heading */}
         <div className="w-full max-w-md mb-8 text-center">
-          <h1 className="font-serif text-5xl font-bold text-gray-900 leading-tight">
+          <h1 className="font-sans text-6xl font-bold text-gray-900 leading-tight">
             Bienvenido<br />de nuevo
           </h1>
         </div>
