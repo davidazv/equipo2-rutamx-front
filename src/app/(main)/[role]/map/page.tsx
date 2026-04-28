@@ -14,10 +14,13 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
 import { MapContainer } from "./_components/map-container";
-import { RouteList } from "./_components/route-list";
-import { EnergyConsumptionCalculator } from "./_components/energy-consumption-calculator";
+import { MapPageTabs } from "./_components/map-page-tabs";
+import { SidebarContent } from "./_components/sidebar-content";
+import { useMapPageState } from "./_components/use-map-page-state";
 
 export default function MapPage() {
+  const { activeTab, setActiveTab, allowedTabs } = useMapPageState();
+
   const [routes, setRoutes] = useState<RouteWithShapes[]>([]);
   const [agencies, setAgencies] = useState<AgencyWithColorsResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,9 +111,18 @@ export default function MapPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] gap-3">
+      {allowedTabs.length > 1 && (
+        <MapPageTabs
+          activeTab={activeTab}
+          allowedTabs={allowedTabs}
+          onTabChange={setActiveTab}
+        />
+      )}
+
       <div className="flex flex-1 gap-4 min-h-0">
         <div className="w-[380px] flex-shrink-0 flex flex-col bg-background rounded-lg border border-border overflow-hidden min-h-0">
-          <RouteList
+          <SidebarContent
+            activeTab={activeTab}
             routes={agencyRoutes}
             selectedRouteId={selectedRouteId}
             onRouteSelect={handleRouteSelect}
@@ -118,11 +130,6 @@ export default function MapPage() {
             agencies={agencies}
             selectedAgencyId={selectedAgencyId}
             onAgencyChange={handleAgencyChange}
-          />
-          <EnergyConsumptionCalculator
-            routes={agencyRoutes}
-            selectedRouteId={selectedRouteId}
-            onRouteChange={handleRouteSelect}
           />
         </div>
 
