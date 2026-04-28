@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Shield, LogOut, User, Settings, LayoutDashboard } from "lucide-react";
+import { Shield, LogOut, User, Settings, LayoutDashboard, Map, Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth";
@@ -38,18 +38,26 @@ export default function AdminHeader() {
           <span className="font-semibold">Admin Panel</span>
         </div>
         <nav className="flex items-center gap-1">
-          <Link
-            href="/admin/dashboard"
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-              pathname === "/admin/dashboard"
-                ? "bg-primary-light/10 text-primary-light"
-                : "text-text-secondary hover:text-foreground hover:bg-surface-light"
-            )}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
-          </Link>
+          {[
+            { href: "/admin",           label: "Panel de Administración", icon: Shield },
+            { href: "/admin/dashboard", label: "Dashboard",               icon: LayoutDashboard },
+            { href: "/admin/map",       label: "Mapa",                    icon: Map },
+            { href: "/admin/fleet",     label: "Flota",                   icon: Bus },
+          ].map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                pathname === href
+                  ? "bg-primary-light/10 text-primary-light"
+                  : "text-text-secondary hover:text-foreground hover:bg-surface-light"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          ))}
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <DropdownMenu>
