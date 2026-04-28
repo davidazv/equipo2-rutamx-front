@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getRole } from "@/lib/auth";
 
@@ -17,17 +17,20 @@ export function useCurrentRole(): DashboardRole {
   const params = useParams();
   const router = useRouter();
   const urlRole = (params?.role as string | undefined)?.toLowerCase() as DashboardRole | undefined;
-  const storedRole = getRole() as DashboardRole | null;
+
+  const [storedRole, setStoredRole] = useState<DashboardRole | null>(null);
 
   useEffect(() => {
-    if (!storedRole) {
+    const role = getRole() as DashboardRole | null;
+    setStoredRole(role);
+    if (!role) {
       router.replace("/login");
       return;
     }
-    if (urlRole && urlRole !== storedRole) {
-      router.replace(ROLE_REDIRECTS[storedRole] ?? "/login");
+    if (urlRole && urlRole !== role) {
+      router.replace(ROLE_REDIRECTS[role] ?? "/login");
     }
-  }, [storedRole, urlRole, router]);
+  }, [urlRole, router]);
 
   return storedRole ?? urlRole ?? "ceo";
 }
