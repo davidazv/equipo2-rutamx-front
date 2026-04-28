@@ -89,7 +89,7 @@ export default function LoginPage() {
       }
 
       if (!destination) {
-        throw new Error("No se pudo determinar tu rol. Contacta al administrador.");
+        throw new Error("El servicio no está disponible. Verifica que el servidor esté activo e intenta de nuevo.");
       }
 
       router.push(destination);
