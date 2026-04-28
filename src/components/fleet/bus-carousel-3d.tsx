@@ -12,9 +12,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { BusModel } from "@/lib/api/bus-models";
 import { formatNumber } from "@/lib/utils";
 
-function BusModel3D() {
+const GLB_FILES = [
+  "/primer-modelo.glb",
+  "/BYD_K7.glb",
+  "/BYD_K9.glb",
+  "/New_Flyer_Xcelsior_XE40.glb",
+  "/Proterra_ZX5.glb",
+  "/Volvo_7900_electric.glb",
+];
+
+function getGlbForIndex(index: number) {
+  return GLB_FILES[index % GLB_FILES.length];
+}
+
+function BusModel3D({ glbPath }: { glbPath: string }) {
   const groupRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF("/primer-modelo.glb");
+  const { scene } = useGLTF(glbPath);
 
   useEffect(() => {
     if (groupRef.current) {
@@ -33,9 +46,11 @@ function BusModel3D() {
   );
 }
 
-useGLTF.preload("/primer-modelo.glb");
+for (const glb of GLB_FILES) {
+  useGLTF.preload(glb);
+}
 
-function CarouselScene() {
+function CarouselScene({ glbPath }: { glbPath: string }) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
 
   useEffect(() => {
@@ -52,7 +67,7 @@ function CarouselScene() {
       <directionalLight position={[-10, 5, -5]} intensity={0.5} />
       <spotLight position={[0, 15, 0]} angle={0.3} intensity={0.8} />
       <color attach="background" args={["#f1f5f9"]} />
-      <BusModel3D />
+      <BusModel3D glbPath={glbPath} />
     </>
   );
 }
@@ -80,7 +95,7 @@ export function BusCarousel3D({ models }: BusCarousel3DProps) {
     <div className="grid lg:grid-cols-2 gap-6">
       <Card className="relative h-[600px] overflow-hidden bg-slate-100">
         <Canvas>
-          <CarouselScene />
+          <CarouselScene glbPath={getGlbForIndex(currentIndex)} />
         </Canvas>
 
         <button

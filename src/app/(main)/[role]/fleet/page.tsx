@@ -251,7 +251,7 @@ export default function FleetPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">{fmt(bus.autonomyKm)} km</TableCell>
-                    <TableCell className="text-right">{fmt(bus.batteryCapacityKwh)} kWh</TableCell>
+                    <TableCell className="text-right">{fmt(bus.batteryCapacityKwh ?? 0)} kWh</TableCell>
                     <TableCell className="text-right">{bus.energyConsumptionKwhKm} kWh/km</TableCell>
                     <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
                     <TableCell className="text-right">${fmt(bus.unitCostUsd / 1000)}K</TableCell>
@@ -286,7 +286,7 @@ export default function FleetPage() {
                   <Leaf className="h-3 w-3" />
                   Emisiones CO₂
                 </p>
-                <p className="text-sm">{fmt(selectedBus.co2EmissionsGKm)} g/km</p>
+                <p className="text-sm">{fmt(selectedBus.co2EmissionsGKm ?? 0)} g/km</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
