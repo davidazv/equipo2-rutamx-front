@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Bus, Battery, Zap, Fuel, DollarSign, Users, Lock } from "lucide-react";
+import { Bus, Battery, Zap, Fuel, DollarSign, Users, Lock, Leaf } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +17,20 @@ import { getBusModels } from "@/lib/api/bus-models";
 import type { BusModel } from "@/lib/api/bus-models";
 import { formatNumber, cn } from "@/lib/utils";
 import { useCurrentRole, type DashboardRole } from "@/hooks/use-current-role";
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+const FUEL_LABELS: Record<BusModel["fuelType"], string> = {
+  ELECTRIC: "Eléctrico",
+  DIESEL: "Diésel",
+};
+
+function fmt(value: number, decimals = 0): string {
+  return new Intl.NumberFormat("es-MX", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+}
 
 // ── Role gating ───────────────────────────────────────────────────────────
 
@@ -55,7 +69,7 @@ export default function FleetPage() {
     }
   }
 
-  const selectedBus = selectedId ? models.find((m) => m.id === selectedId) : null;
+  const selectedBus = selectedId ? models.find((m) => m.id === selectedId) ?? null : null;
 
   // ── KPI computations ──────────────────────────────────────────────────
 
@@ -197,7 +211,7 @@ export default function FleetPage() {
       {/* 3D Carousel */}
       <BusCarousel3D models={models} />
 
-      {/* Comparison Table */}
+      {/* Comparison Table (from develop) */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Comparación de Modelos de Bus</CardTitle>
@@ -221,22 +235,26 @@ export default function FleetPage() {
                 {models.map((bus) => (
                   <TableRow
                     key={bus.id}
-                    className={cn("cursor-pointer", selectedId === bus.id && "bg-primary/10")}
-                    onClick={() => setSelectedId(selectedId === bus.id ? null : bus.id)}
+                    className={cn(
+                      "cursor-pointer transition-colors",
+                      selectedId === bus.id && "bg-primary/10"
+                    )}
+                    onClick={() =>
+                      setSelectedId(selectedId === bus.id ? null : bus.id)
+                    }
                   >
                     <TableCell className="font-medium">{bus.name}</TableCell>
                     <TableCell>{bus.manufacturer}</TableCell>
                     <TableCell>
-                      <Badge variant={bus.fuelType === "ELECTRIC" ? "success" : "default"} className="gap-1">
-                        {bus.fuelType === "ELECTRIC" ? <Zap className="h-3 w-3" /> : <Fuel className="h-3 w-3" />}
-                        {bus.fuelType === "ELECTRIC" ? "Eléctrico" : "Diésel"}
+                      <Badge variant="outline">
+                        {FUEL_LABELS[bus.fuelType]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatNumber(bus.autonomyKm)} km</TableCell>
-                    <TableCell className="text-right">{formatNumber(bus.batteryCapacityKwh ?? 0)} kWh</TableCell>
-                    <TableCell className="text-right">{bus.energyConsumptionKwhKm ?? 0} kWh/km</TableCell>
+                    <TableCell className="text-right">{fmt(bus.autonomyKm)} km</TableCell>
+                    <TableCell className="text-right">{fmt(bus.batteryCapacityKwh)} kWh</TableCell>
+                    <TableCell className="text-right">{bus.energyConsumptionKwhKm} kWh/km</TableCell>
                     <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
-                    <TableCell className="text-right">${formatNumber(bus.unitCostUsd / 1000)}K</TableCell>
+                    <TableCell className="text-right">${fmt(bus.unitCostUsd / 1000)}K</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -245,12 +263,12 @@ export default function FleetPage() {
         </CardContent>
       </Card>
 
-      {/* Detail Card */}
+      {/* Detail Card (from develop) */}
       {selectedBus && (
         <Card className="border-primary/50">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Bus className="h-5 w-5 text-primary" />
+              <Bus className="h-5 w-5" />
               {selectedBus.manufacturer} {selectedBus.name}
             </CardTitle>
           </CardHeader>
@@ -258,25 +276,30 @@ export default function FleetPage() {
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <Battery className="h-3 w-3" /> Autonomía
+                  <Zap className="h-3 w-3" />
+                  Tipo de combustible
                 </p>
-                <p className="text-sm">{formatNumber(selectedBus.autonomyKm)} km</p>
+                <p className="text-sm">{FUEL_LABELS[selectedBus.fuelType]}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <Zap className="h-3 w-3" /> Consumo Energético
+                  <Leaf className="h-3 w-3" />
+                  Emisiones CO₂
                 </p>
-                <p className="text-sm">{selectedBus.energyConsumptionKwhKm ?? 0} kWh/km</p>
+                <p className="text-sm">{fmt(selectedBus.co2EmissionsGKm)} g/km</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-text-secondary flex items-center gap-1">
+                  <Battery className="h-3 w-3" />
+                  Consumo energético
+                </p>
+                <p className="text-sm">{selectedBus.energyConsumptionKwhKm} kWh/km</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
                   <DollarSign className="h-3 w-3" /> Mantenimiento
                 </p>
                 <p className="text-sm">${selectedBus.maintenanceCostPerKm ?? 0}/km</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-text-secondary">CO₂ Emisiones</p>
-                <p className="text-sm">{formatNumber(selectedBus.co2EmissionsGKm ?? 0)} g/km</p>
               </div>
             </div>
           </CardContent>
