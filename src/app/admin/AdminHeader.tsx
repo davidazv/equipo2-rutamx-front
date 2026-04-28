@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Shield, LogOut, User, Settings } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Shield, LogOut, User, Settings, LayoutDashboard } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,7 @@ import {
 
 export default function AdminHeader() {
   const router = useRouter();
+  const pathname = usePathname();
 
   function handleSignOut() {
     signOut();
@@ -31,10 +33,24 @@ export default function AdminHeader() {
             Ruta<span className="text-primary-light">MX</span>
           </span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mr-8">
           <Shield className="h-5 w-5 text-primary-light" />
           <span className="font-semibold">Admin Panel</span>
         </div>
+        <nav className="flex items-center gap-1">
+          <Link
+            href="/admin/dashboard"
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              pathname === "/admin/dashboard"
+                ? "bg-primary-light/10 text-primary-light"
+                : "text-text-secondary hover:text-foreground hover:bg-surface-light"
+            )}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
+          </Link>
+        </nav>
         <div className="ml-auto flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

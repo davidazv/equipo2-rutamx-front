@@ -3,9 +3,14 @@
 import { LayoutDashboard } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCurrentRole } from "@/hooks/use-current-role";
+import RoiDashboardPage from "@/app/dashboard/page";
 
 export default function DashboardPage() {
   const role = useCurrentRole();
+
+  if (role === "ceo") {
+    return <RoiDashboardPage />;
+  }
 
   return (
     <div className="space-y-6">
