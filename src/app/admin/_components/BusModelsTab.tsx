@@ -8,8 +8,7 @@ import {
   Trash2,
   X,
   Zap,
-  Flame,
-  Droplets,
+  Fuel,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -53,20 +52,17 @@ function formatCurrency(value: number): string {
 
 const FUEL_TYPE_LABELS: Record<FuelType, string> = {
   ELECTRIC: 'Eléctrico',
-  HYBRID: 'Híbrido',
-  HYDROGEN: 'Hidrógeno',
+  DIESEL: 'Diésel',
 }
 
 const FUEL_TYPE_ICONS: Record<FuelType, React.ReactNode> = {
   ELECTRIC: <Zap className="h-3 w-3" />,
-  HYBRID: <Flame className="h-3 w-3" />,
-  HYDROGEN: <Droplets className="h-3 w-3" />,
+  DIESEL: <Fuel className="h-3 w-3" />,
 }
 
-const FUEL_TYPE_VARIANT: Record<FuelType, 'success' | 'default' | 'secondary'> = {
+const FUEL_TYPE_VARIANT: Record<FuelType, 'success' | 'default'> = {
   ELECTRIC: 'success',
-  HYBRID: 'default',
-  HYDROGEN: 'secondary',
+  DIESEL: 'default',
 }
 
 function FuelTypeBadge({ fuelType }: { fuelType: FuelType }) {
@@ -132,7 +128,7 @@ export default function BusModelsTab() {
       (m) =>
         m.name.toLowerCase().includes(q) ||
         m.manufacturer.toLowerCase().includes(q) ||
-        m.fuel_type.toLowerCase().includes(q)
+        m.fuelType.toLowerCase().includes(q)
     )
   }, [busModels, search])
 
@@ -166,7 +162,6 @@ export default function BusModelsTab() {
               <TableHead className="text-right">Autonomía (km)</TableHead>
               <TableHead className="text-right">Pasajeros</TableHead>
               <TableHead className="text-right">Batería (kWh)</TableHead>
-              <TableHead className="text-right">Vel. Máx. (km/h)</TableHead>
               <TableHead className="text-right">Costo (USD)</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -174,7 +169,7 @@ export default function BusModelsTab() {
           <TableBody>
             {filteredModels.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-text-muted py-12">
+                <TableCell colSpan={8} className="text-center text-text-muted py-12">
                   No se encontraron modelos.
                 </TableCell>
               </TableRow>
@@ -183,12 +178,11 @@ export default function BusModelsTab() {
               <TableRow key={model.id}>
                 <TableCell className="font-medium">{model.name}</TableCell>
                 <TableCell className="text-text-secondary">{model.manufacturer}</TableCell>
-                <TableCell><FuelTypeBadge fuelType={model.fuel_type} /></TableCell>
-                <TableCell className="text-right font-mono text-sm">{model.autonomy_km}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{model.passenger_capacity}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{model.battery_capacity_kwh}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{model.max_speed_kmh}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{formatCurrency(model.unit_cost_usd)}</TableCell>
+                <TableCell><FuelTypeBadge fuelType={model.fuelType} /></TableCell>
+                <TableCell className="text-right font-mono text-sm">{model.autonomyKm}</TableCell>
+                <TableCell className="text-right font-mono text-sm">{model.passengerCapacity}</TableCell>
+                <TableCell className="text-right font-mono text-sm">{model.batteryCapacityKwh}</TableCell>
+                <TableCell className="text-right font-mono text-sm">{formatCurrency(model.unitCostUsd)}</TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
                     <Button

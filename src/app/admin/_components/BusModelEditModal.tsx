@@ -25,21 +25,18 @@ import type { BusModel, FuelType } from '@/lib/api/bus-models'
 interface BusModelFormData {
   name: string
   manufacturer: string
-  fuel_type: FuelType
-  autonomy_km: string
-  passenger_capacity: string
-  unit_cost_usd: string
-  battery_capacity_kwh: string
-  charge_time_hours: string
-  max_speed_kmh: string
+  fuelType: FuelType
+  autonomyKm: string
+  passengerCapacity: string
+  unitCostUsd: string
+  batteryCapacityKwh: string
 }
 
 type FormErrors = Partial<Record<keyof BusModelFormData, string>>
 
 const FUEL_TYPE_LABELS: Record<FuelType, string> = {
   ELECTRIC: 'Eléctrico',
-  HYBRID: 'Híbrido',
-  HYDROGEN: 'Hidrógeno',
+  DIESEL: 'Diésel',
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -58,13 +55,11 @@ function modelToForm(model: BusModel): BusModelFormData {
   return {
     name: model.name,
     manufacturer: model.manufacturer,
-    fuel_type: model.fuel_type,
-    autonomy_km: String(model.autonomy_km),
-    passenger_capacity: String(model.passenger_capacity),
-    unit_cost_usd: String(model.unit_cost_usd),
-    battery_capacity_kwh: String(model.battery_capacity_kwh),
-    charge_time_hours: String(model.charge_time_hours),
-    max_speed_kmh: String(model.max_speed_kmh),
+    fuelType: model.fuelType,
+    autonomyKm: String(model.autonomyKm),
+    passengerCapacity: String(model.passengerCapacity),
+    unitCostUsd: String(model.unitCostUsd),
+    batteryCapacityKwh: String(model.batteryCapacityKwh ?? 0),
   }
 }
 
@@ -83,18 +78,15 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
   const [form, setForm] = useState<BusModelFormData>({
     name: '',
     manufacturer: '',
-    fuel_type: 'ELECTRIC',
-    autonomy_km: '',
-    passenger_capacity: '',
-    unit_cost_usd: '',
-    battery_capacity_kwh: '',
-    charge_time_hours: '',
-    max_speed_kmh: '',
+    fuelType: 'ELECTRIC',
+    autonomyKm: '',
+    passengerCapacity: '',
+    unitCostUsd: '',
+    batteryCapacityKwh: '',
   })
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
 
-  // Preload form data when model changes
   useEffect(() => {
     if (model) {
       setForm(modelToForm(model))
@@ -110,18 +102,14 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
     if (!form.name.trim()) errors.name = 'El nombre es obligatorio.'
     if (!form.manufacturer.trim()) errors.manufacturer = 'El fabricante es obligatorio.'
 
-    if (parsePositiveInt(form.autonomy_km) === null)
-      errors.autonomy_km = 'Ingresa un número entero mayor a 0.'
-    if (parsePositiveInt(form.passenger_capacity) === null)
-      errors.passenger_capacity = 'Ingresa un número entero mayor a 0.'
-    if (parsePositiveFloat(form.unit_cost_usd) === null)
-      errors.unit_cost_usd = 'Ingresa un valor mayor a 0.'
-    if (parsePositiveFloat(form.battery_capacity_kwh) === null)
-      errors.battery_capacity_kwh = 'Ingresa un valor mayor a 0.'
-    if (parsePositiveFloat(form.charge_time_hours) === null)
-      errors.charge_time_hours = 'Ingresa un valor mayor a 0.'
-    if (parsePositiveInt(form.max_speed_kmh) === null)
-      errors.max_speed_kmh = 'Ingresa un número entero mayor a 0.'
+    if (parsePositiveInt(form.autonomyKm) === null)
+      errors.autonomyKm = 'Ingresa un número entero mayor a 0.'
+    if (parsePositiveInt(form.passengerCapacity) === null)
+      errors.passengerCapacity = 'Ingresa un número entero mayor a 0.'
+    if (parsePositiveFloat(form.unitCostUsd) === null)
+      errors.unitCostUsd = 'Ingresa un valor mayor a 0.'
+    if (parsePositiveFloat(form.batteryCapacityKwh) === null)
+      errors.batteryCapacityKwh = 'Ingresa un valor mayor a 0.'
 
     setFormErrors(errors)
     return Object.keys(errors).length === 0
@@ -137,13 +125,11 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
       const updated = await updateBusModel(model.id, {
         name: form.name.trim(),
         manufacturer: form.manufacturer.trim(),
-        fuel_type: form.fuel_type,
-        autonomy_km: parsePositiveInt(form.autonomy_km)!,
-        passenger_capacity: parsePositiveInt(form.passenger_capacity)!,
-        unit_cost_usd: parsePositiveFloat(form.unit_cost_usd)!,
-        battery_capacity_kwh: parsePositiveFloat(form.battery_capacity_kwh)!,
-        charge_time_hours: parsePositiveFloat(form.charge_time_hours)!,
-        max_speed_kmh: parsePositiveInt(form.max_speed_kmh)!,
+        fuelType: form.fuelType,
+        autonomyKm: parsePositiveInt(form.autonomyKm)!,
+        passengerCapacity: parsePositiveInt(form.passengerCapacity)!,
+        unitCostUsd: parsePositiveFloat(form.unitCostUsd)!,
+        batteryCapacityKwh: parsePositiveFloat(form.batteryCapacityKwh)!,
       })
       onUpdated(updated)
       onClose()
@@ -192,12 +178,12 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-text-secondary">Nombre del modelo</label>
-                <Input placeholder="ej. eCitaro G" {...field('name')} />
+                <Input placeholder="ej. Yutong E12PRO" {...field('name')} />
                 {formErrors.name && <p className="text-xs text-danger">{formErrors.name}</p>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-text-secondary">Fabricante</label>
-                <Input placeholder="ej. Mercedes-Benz" {...field('manufacturer')} />
+                <Input placeholder="ej. Yutong" {...field('manufacturer')} />
                 {formErrors.manufacturer && <p className="text-xs text-danger">{formErrors.manufacturer}</p>}
               </div>
             </div>
@@ -205,8 +191,8 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
             <div className="flex flex-col gap-1">
               <label className="text-sm text-text-secondary">Tipo de combustible</label>
               <Select
-                value={form.fuel_type}
-                onValueChange={(v) => setForm((f) => ({ ...f, fuel_type: v as FuelType }))}
+                value={form.fuelType}
+                onValueChange={(v) => setForm((f) => ({ ...f, fuelType: v as FuelType }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -227,28 +213,18 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-text-secondary">Autonomía (km)</label>
-                <Input type="number" min="1" placeholder="ej. 250" {...field('autonomy_km')} />
-                {formErrors.autonomy_km && <p className="text-xs text-danger">{formErrors.autonomy_km}</p>}
+                <Input type="number" min="1" placeholder="ej. 300" {...field('autonomyKm')} />
+                {formErrors.autonomyKm && <p className="text-xs text-danger">{formErrors.autonomyKm}</p>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-text-secondary">Capacidad de pasajeros</label>
-                <Input type="number" min="1" placeholder="ej. 120" {...field('passenger_capacity')} />
-                {formErrors.passenger_capacity && <p className="text-xs text-danger">{formErrors.passenger_capacity}</p>}
+                <Input type="number" min="1" placeholder="ej. 85" {...field('passengerCapacity')} />
+                {formErrors.passengerCapacity && <p className="text-xs text-danger">{formErrors.passengerCapacity}</p>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-text-secondary">Capacidad batería (kWh)</label>
-                <Input type="number" min="0.1" step="0.1" placeholder="ej. 392" {...field('battery_capacity_kwh')} />
-                {formErrors.battery_capacity_kwh && <p className="text-xs text-danger">{formErrors.battery_capacity_kwh}</p>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Tiempo de carga (horas)</label>
-                <Input type="number" min="0.1" step="0.1" placeholder="ej. 3.5" {...field('charge_time_hours')} />
-                {formErrors.charge_time_hours && <p className="text-xs text-danger">{formErrors.charge_time_hours}</p>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-text-secondary">Velocidad máxima (km/h)</label>
-                <Input type="number" min="1" placeholder="ej. 80" {...field('max_speed_kmh')} />
-                {formErrors.max_speed_kmh && <p className="text-xs text-danger">{formErrors.max_speed_kmh}</p>}
+                <Input type="number" min="0.1" step="0.1" placeholder="ej. 352" {...field('batteryCapacityKwh')} />
+                {formErrors.batteryCapacityKwh && <p className="text-xs text-danger">{formErrors.batteryCapacityKwh}</p>}
               </div>
             </div>
           </section>
@@ -258,8 +234,8 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
             <p className="text-sm font-medium text-foreground">Costos</p>
             <div className="flex flex-col gap-1">
               <label className="text-sm text-text-secondary">Costo unitario (USD)</label>
-              <Input type="number" min="1" step="1000" placeholder="ej. 620000" {...field('unit_cost_usd')} />
-              {formErrors.unit_cost_usd && <p className="text-xs text-danger">{formErrors.unit_cost_usd}</p>}
+              <Input type="number" min="1" step="1000" placeholder="ej. 420000" {...field('unitCostUsd')} />
+              {formErrors.unitCostUsd && <p className="text-xs text-danger">{formErrors.unitCostUsd}</p>}
             </div>
           </section>
 

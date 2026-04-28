@@ -1,168 +1,206 @@
 "use client";
 
-import { useState } from "react";
-import { Bus, Battery, DollarSign, Ruler } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Bus, Battery, Zap, Fuel, DollarSign, Users, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
+import { ErrorState } from "@/components/ui/error-state";
+import { Button } from "@/components/ui/button";
+import { ChartWrapper } from "@/components/charts/chart-wrapper";
+import { BarChart } from "@/components/charts/bar-chart";
+import { BusCarousel3D } from "@/components/fleet/bus-carousel-3d";
+import { getBusModels } from "@/lib/api/bus-models";
+import type { BusModel } from "@/lib/api/bus-models";
+import { formatNumber, cn } from "@/lib/utils";
+import { useCurrentRole, type DashboardRole } from "@/hooks/use-current-role";
 
-interface BusModel {
-  id: string;
-  modelName: string;
-  manufacturer: string;
-  rangeKm: number;
-  batteryCapacityKwh: number;
-  chargingTimeHours: number;
-  energyConsumptionKwhPerKm: number;
-  passengerCapacity: number;
-  lengthMeters: number;
-  widthMeters: number;
-  heightMeters: number;
-  weightKg: number;
-  unitCostUsd: number;
-  maintenanceCostPerKm: number;
-  warrantyYears: number;
-}
+// ── Role gating ───────────────────────────────────────────────────────────
 
-const BUS_MODELS: BusModel[] = [
-  {
-    id: "byd-k9",
-    modelName: "K9",
-    manufacturer: "BYD",
-    rangeKm: 250,
-    batteryCapacityKwh: 324,
-    chargingTimeHours: 4,
-    energyConsumptionKwhPerKm: 1.3,
-    passengerCapacity: 80,
-    lengthMeters: 12,
-    widthMeters: 2.55,
-    heightMeters: 3.36,
-    weightKg: 18000,
-    unitCostUsd: 550000,
-    maintenanceCostPerKm: 0.15,
-    warrantyYears: 12,
-  },
-  {
-    id: "byd-k7",
-    modelName: "K7",
-    manufacturer: "BYD",
-    rangeKm: 200,
-    batteryCapacityKwh: 215,
-    chargingTimeHours: 3.5,
-    energyConsumptionKwhPerKm: 1.1,
-    passengerCapacity: 60,
-    lengthMeters: 10.5,
-    widthMeters: 2.5,
-    heightMeters: 3.2,
-    weightKg: 14500,
-    unitCostUsd: 420000,
-    maintenanceCostPerKm: 0.12,
-    warrantyYears: 10,
-  },
-  {
-    id: "yutong-e12",
-    modelName: "E12",
-    manufacturer: "Yutong",
-    rangeKm: 300,
-    batteryCapacityKwh: 422,
-    chargingTimeHours: 4.5,
-    energyConsumptionKwhPerKm: 1.4,
-    passengerCapacity: 90,
-    lengthMeters: 12,
-    widthMeters: 2.55,
-    heightMeters: 3.4,
-    weightKg: 19000,
-    unitCostUsd: 480000,
-    maintenanceCostPerKm: 0.14,
-    warrantyYears: 8,
-  },
-  {
-    id: "volvo-7900e",
-    modelName: "7900 Electric",
-    manufacturer: "Volvo",
-    rangeKm: 220,
-    batteryCapacityKwh: 396,
-    chargingTimeHours: 6,
-    energyConsumptionKwhPerKm: 1.8,
-    passengerCapacity: 95,
-    lengthMeters: 12,
-    widthMeters: 2.55,
-    heightMeters: 3.3,
-    weightKg: 19500,
-    unitCostUsd: 650000,
-    maintenanceCostPerKm: 0.18,
-    warrantyYears: 10,
-  },
-  {
-    id: "proterra-zx5",
-    modelName: "ZX5",
-    manufacturer: "Proterra",
-    rangeKm: 400,
-    batteryCapacityKwh: 660,
-    chargingTimeHours: 5,
-    energyConsumptionKwhPerKm: 1.65,
-    passengerCapacity: 77,
-    lengthMeters: 12.2,
-    widthMeters: 2.6,
-    heightMeters: 3.35,
-    weightKg: 17800,
-    unitCostUsd: 750000,
-    maintenanceCostPerKm: 0.16,
-    warrantyYears: 12,
-  },
-  {
-    id: "new-flyer-xe40",
-    modelName: "Xcelsior XE40",
-    manufacturer: "New Flyer",
-    rangeKm: 280,
-    batteryCapacityKwh: 466,
-    chargingTimeHours: 4,
-    energyConsumptionKwhPerKm: 1.66,
-    passengerCapacity: 70,
-    lengthMeters: 12.2,
-    widthMeters: 2.6,
-    heightMeters: 3.2,
-    weightKg: 18500,
-    unitCostUsd: 800000,
-    maintenanceCostPerKm: 0.17,
-    warrantyYears: 12,
-  },
-];
+const FLEET_SECTIONS_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
+  ceo:   new Set(["fleet-analytics"]),
+  coo:   new Set(["fleet-analytics"]),
+  cmo:   new Set([]),
+  admin: new Set(["fleet-analytics"]),
+};
 
-function fmt(value: number, decimals = 0): string {
-  return new Intl.NumberFormat("es-MX", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-}
+// ── Page ──────────────────────────────────────────────────────────────────
 
 export default function FleetPage() {
-  const [selectedBusId, setSelectedBusId] = useState<string | null>(null);
+  const role = useCurrentRole();
+  const show = (section: string) => FLEET_SECTIONS_BY_ROLE[role].has(section);
 
-  const selectedBus = selectedBusId
-    ? BUS_MODELS.find((b) => b.id === selectedBusId)
-    : null;
+  const [models, setModels] = useState<BusModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchModels();
+  }, []);
+
+  async function fetchModels() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getBusModels();
+      setModels(data);
+    } catch {
+      setError("No se pudieron cargar los modelos de autobús.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const selectedBus = selectedId ? models.find((m) => m.id === selectedId) : null;
+
+  // ── KPI computations ──────────────────────────────────────────────────
+
+  const kpis = useMemo(() => {
+    if (models.length === 0) return { count: 0, avgAutonomy: 0, avgConsumption: 0, totalCapacity: 0 };
+    const avgAutonomy = models.reduce((a, b) => a + b.autonomyKm, 0) / models.length;
+    const electricModels = models.filter((m) => m.energyConsumptionKwhKm && m.energyConsumptionKwhKm > 0);
+    const avgConsumption = electricModels.length > 0
+      ? electricModels.reduce((a, b) => a + (b.energyConsumptionKwhKm ?? 0), 0) / electricModels.length
+      : 0;
+    const totalCapacity = models.reduce((a, b) => a + b.passengerCapacity, 0);
+    return { count: models.length, avgAutonomy, avgConsumption, totalCapacity };
+  }, [models]);
+
+  // ── Chart data ────────────────────────────────────────────────────────
+
+  const comparisonData = useMemo(() => ({
+    labels: models.map((b) => `${b.manufacturer} ${b.name}`),
+    datasets: [{
+      label: "Autonomía (km)",
+      data: models.map((b) => b.autonomyKm),
+      backgroundColor: "#3B82F6",
+    }],
+  }), [models]);
+
+  const capacityData = useMemo(() => ({
+    labels: models.map((b) => b.name),
+    datasets: [{
+      label: "Capacidad de Pasajeros",
+      data: models.map((b) => b.passengerCapacity),
+      backgroundColor: "#22C55E",
+    }],
+  }), [models]);
+
+  // ── No access ─────────────────────────────────────────────────────────
+
+  if (!show("fleet-analytics")) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-light border border-border">
+          <Lock className="h-5 w-5 text-text-muted" />
+        </div>
+        <p className="text-sm font-medium">No tienes acceso a esta sección</p>
+        <p className="text-xs text-text-muted">El rol CMO no tiene historias de usuario asignadas en Flota.</p>
+      </div>
+    );
+  }
+
+  // ── Loading ───────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <p className="text-sm text-text-secondary">Cargando modelos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error ─────────────────────────────────────────────────────────────
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Error al cargar datos"
+        description={error}
+        action={<Button onClick={fetchModels}>Reintentar</Button>}
+      />
+    );
+  }
+
+  // ── Main content ──────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Fleet Analytics</h1>
-        <p className="text-sm text-text-secondary">
-          Analisis y comparacion de modelos de buses electricos
-        </p>
+        <p className="text-text-secondary">Análisis y comparación de modelos de buses eléctricos</p>
       </div>
 
+      {/* KPI Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Bus className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-text-secondary">Modelos</p>
+                <p className="text-xl font-bold">{kpis.count}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                <Battery className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-xs text-text-secondary">Autonomía Promedio</p>
+                <p className="text-xl font-bold">{formatNumber(kpis.avgAutonomy)} km</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
+                <Zap className="h-5 w-5 text-warning" />
+              </div>
+              <div>
+                <p className="text-xs text-text-secondary">Consumo Promedio</p>
+                <p className="text-xl font-bold">{kpis.avgConsumption.toFixed(2)} kWh/km</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-text-secondary">Capacidad Total</p>
+                <p className="text-xl font-bold">{formatNumber(kpis.totalCapacity)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 3D Carousel */}
+      <BusCarousel3D models={models} />
+
+      {/* Comparison Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Comparacion de Modelos de Bus</CardTitle>
+          <CardTitle className="text-base">Comparación de Modelos de Bus</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -171,36 +209,34 @@ export default function FleetPage() {
                 <TableRow>
                   <TableHead>Modelo</TableHead>
                   <TableHead>Fabricante</TableHead>
-                  <TableHead className="text-right">Rango</TableHead>
-                  <TableHead className="text-right">Bateria</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Autonomía</TableHead>
+                  <TableHead className="text-right">Batería</TableHead>
                   <TableHead className="text-right">Consumo</TableHead>
                   <TableHead className="text-right">Capacidad</TableHead>
                   <TableHead className="text-right">Costo</TableHead>
-                  <TableHead className="text-right">Garantia</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {BUS_MODELS.map((bus) => (
+                {models.map((bus) => (
                   <TableRow
                     key={bus.id}
-                    className={cn(
-                      "cursor-pointer transition-colors",
-                      selectedBusId === bus.id && "bg-primary/10"
-                    )}
-                    onClick={() =>
-                      setSelectedBusId(selectedBusId === bus.id ? null : bus.id)
-                    }
+                    className={cn("cursor-pointer", selectedId === bus.id && "bg-primary/10")}
+                    onClick={() => setSelectedId(selectedId === bus.id ? null : bus.id)}
                   >
-                    <TableCell className="font-medium">{bus.modelName}</TableCell>
+                    <TableCell className="font-medium">{bus.name}</TableCell>
                     <TableCell>{bus.manufacturer}</TableCell>
-                    <TableCell className="text-right">{fmt(bus.rangeKm)} km</TableCell>
-                    <TableCell className="text-right">{fmt(bus.batteryCapacityKwh)} kWh</TableCell>
-                    <TableCell className="text-right">{bus.energyConsumptionKwhPerKm} kWh/km</TableCell>
-                    <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
-                    <TableCell className="text-right">${fmt(bus.unitCostUsd / 1000)}K</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="outline">{bus.warrantyYears} anos</Badge>
+                    <TableCell>
+                      <Badge variant={bus.fuelType === "ELECTRIC" ? "success" : "default"} className="gap-1">
+                        {bus.fuelType === "ELECTRIC" ? <Zap className="h-3 w-3" /> : <Fuel className="h-3 w-3" />}
+                        {bus.fuelType === "ELECTRIC" ? "Eléctrico" : "Diésel"}
+                      </Badge>
                     </TableCell>
+                    <TableCell className="text-right">{formatNumber(bus.autonomyKm)} km</TableCell>
+                    <TableCell className="text-right">{formatNumber(bus.batteryCapacityKwh ?? 0)} kWh</TableCell>
+                    <TableCell className="text-right">{bus.energyConsumptionKwhKm ?? 0} kWh/km</TableCell>
+                    <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
+                    <TableCell className="text-right">${formatNumber(bus.unitCostUsd / 1000)}K</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -209,48 +245,53 @@ export default function FleetPage() {
         </CardContent>
       </Card>
 
+      {/* Detail Card */}
       {selectedBus && (
         <Card className="border-primary/50">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Bus className="h-5 w-5" />
-              {selectedBus.manufacturer} {selectedBus.modelName}
+              <Bus className="h-5 w-5 text-primary" />
+              {selectedBus.manufacturer} {selectedBus.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <Ruler className="h-3 w-3" />
-                  Dimensiones
+                  <Battery className="h-3 w-3" /> Autonomía
                 </p>
-                <p className="text-sm">
-                  {selectedBus.lengthMeters}m x {selectedBus.widthMeters}m x{" "}
-                  {selectedBus.heightMeters}m
-                </p>
+                <p className="text-sm">{formatNumber(selectedBus.autonomyKm)} km</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <Battery className="h-3 w-3" />
-                  Tiempo de Carga
+                  <Zap className="h-3 w-3" /> Consumo Energético
                 </p>
-                <p className="text-sm">{selectedBus.chargingTimeHours} horas</p>
+                <p className="text-sm">{selectedBus.energyConsumptionKwhKm ?? 0} kWh/km</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  Mantenimiento
+                  <DollarSign className="h-3 w-3" /> Mantenimiento
                 </p>
-                <p className="text-sm">${selectedBus.maintenanceCostPerKm}/km</p>
+                <p className="text-sm">${selectedBus.maintenanceCostPerKm ?? 0}/km</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-text-secondary">Peso</p>
-                <p className="text-sm">{fmt(selectedBus.weightKg)} kg</p>
+                <p className="text-xs text-text-secondary">CO₂ Emisiones</p>
+                <p className="text-sm">{formatNumber(selectedBus.co2EmissionsGKm ?? 0)} g/km</p>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Bar Charts */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartWrapper title="Autonomía por Modelo" description="Comparación de autonomía en kilómetros">
+          <BarChart data={comparisonData} horizontal />
+        </ChartWrapper>
+        <ChartWrapper title="Capacidad de Pasajeros" description="Capacidad máxima por modelo">
+          <BarChart data={capacityData} />
+        </ChartWrapper>
+      </div>
     </div>
   );
 }
