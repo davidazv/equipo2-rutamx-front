@@ -6,6 +6,7 @@ import type { RouteWithShapes } from "@/lib/api/energy";
 import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
 import { RouteList } from "./route-list";
 import { EnergyConsumptionCalculator } from "./energy-consumption-calculator";
+import { CooSidebar } from "./sidebar/coo-sidebar";
 
 interface SidebarContentProps {
   activeTab: MapPageTab;
@@ -29,11 +30,7 @@ export function SidebarContent({
   onAgencyChange,
 }: SidebarContentProps): ReactNode {
   if (activeTab === "fleet") {
-    return (
-      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-        Optimización de Flota (cargando...)
-      </div>
-    );
+    return <CooSidebar />;
   }
 
   return (
