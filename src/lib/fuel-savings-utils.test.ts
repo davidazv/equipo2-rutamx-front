@@ -25,70 +25,72 @@ const mockData: FuelSavingsResponse = {
 };
 
 describe("buildMonthlyChartData", () => {
-  it("should create 12 monthly labels", () => {
-    const result = buildMonthlyChartData(mockData);
-    expect(result.labels).toHaveLength(12);
-    expect(result.labels[0]).toBe("Ene");
-    expect(result.labels[11]).toBe("Dic");
+  it("should create 12 monthly labels for both charts", () => {
+    const { mxn, liters } = buildMonthlyChartData(mockData);
+    expect(mxn.labels).toHaveLength(12);
+    expect(mxn.labels[0]).toBe("Ene");
+    expect(mxn.labels[11]).toBe("Dic");
+    expect(liters.labels).toHaveLength(12);
   });
 
-  it("should have 2 datasets (MXN and liters)", () => {
-    const result = buildMonthlyChartData(mockData);
-    expect(result.datasets).toHaveLength(2);
-    expect(result.datasets[0].label).toBe("Ahorro MXN");
-    expect(result.datasets[1].label).toBe("Litros ahorrados");
+  it("should have separate datasets for MXN and liters", () => {
+    const { mxn, liters } = buildMonthlyChartData(mockData);
+    expect(mxn.datasets).toHaveLength(1);
+    expect(mxn.datasets[0].label).toBe("Ahorro MXN");
+    expect(liters.datasets).toHaveLength(1);
+    expect(liters.datasets[0].label).toBe("Litros ahorrados");
   });
 
   it("should divide annual savings by 12", () => {
-    const result = buildMonthlyChartData(mockData);
+    const { mxn, liters } = buildMonthlyChartData(mockData);
     const expectedMXN = Math.round(3472000 / 12);
     const expectedLiters = Math.round(217000 / 12);
-    expect(result.datasets[0].data[0]).toBe(expectedMXN);
-    expect(result.datasets[1].data[0]).toBe(expectedLiters);
+    expect(mxn.datasets[0].data[0]).toBe(expectedMXN);
+    expect(liters.datasets[0].data[0]).toBe(expectedLiters);
   });
 
   it("should have consistent values across all months", () => {
-    const result = buildMonthlyChartData(mockData);
-    const first = result.datasets[0].data[0];
-    result.datasets[0].data.forEach((v) => expect(v).toBe(first));
+    const { mxn } = buildMonthlyChartData(mockData);
+    const first = mxn.datasets[0].data[0];
+    mxn.datasets[0].data.forEach((v) => expect(v).toBe(first));
   });
 });
 
 describe("buildAnnualChartData", () => {
   it("should create labels for each projection year", () => {
-    const result = buildAnnualChartData(mockData);
-    expect(result.labels).toHaveLength(5);
-    expect(result.labels[0]).toBe("Año 1");
-    expect(result.labels[4]).toBe("Año 5");
+    const { mxn } = buildAnnualChartData(mockData);
+    expect(mxn.labels).toHaveLength(5);
+    expect(mxn.labels[0]).toBe("Año 1");
+    expect(mxn.labels[4]).toBe("Año 5");
   });
 
   it("should multiply savings by year number", () => {
-    const result = buildAnnualChartData(mockData);
-    expect(result.datasets[0].data[0]).toBe(Math.round(3472000 * 1));
-    expect(result.datasets[0].data[2]).toBe(Math.round(3472000 * 3));
-    expect(result.datasets[0].data[4]).toBe(Math.round(3472000 * 5));
+    const { mxn } = buildAnnualChartData(mockData);
+    expect(mxn.datasets[0].data[0]).toBe(Math.round(3472000 * 1));
+    expect(mxn.datasets[0].data[2]).toBe(Math.round(3472000 * 3));
+    expect(mxn.datasets[0].data[4]).toBe(Math.round(3472000 * 5));
   });
 
   it("should have increasing values year over year", () => {
-    const result = buildAnnualChartData(mockData);
-    for (let i = 1; i < result.datasets[0].data.length; i++) {
-      expect(result.datasets[0].data[i]).toBeGreaterThan(result.datasets[0].data[i - 1]);
+    const { mxn } = buildAnnualChartData(mockData);
+    for (let i = 1; i < mxn.datasets[0].data.length; i++) {
+      expect(mxn.datasets[0].data[i]).toBeGreaterThan(mxn.datasets[0].data[i - 1]);
     }
   });
 });
 
 describe("buildAccumulatedChartData", () => {
   it("should create line chart datasets with fill", () => {
-    const result = buildAccumulatedChartData(mockData);
-    expect(result.datasets[0].fill).toBe(true);
-    expect(result.datasets[0].borderColor).toBe("#1e40af");
-    expect(result.datasets[1].borderColor).toBe("#22c77a");
+    const { mxn, liters } = buildAccumulatedChartData(mockData);
+    expect(mxn.datasets[0].fill).toBe(true);
+    expect(mxn.datasets[0].borderColor).toBe("#1e40af");
+    expect(liters.datasets[0].borderColor).toBe("#22c77a");
   });
 
   it("should have same accumulated values as annual", () => {
     const annual = buildAnnualChartData(mockData);
     const accumulated = buildAccumulatedChartData(mockData);
-    expect(accumulated.datasets[0].data).toEqual(annual.datasets[0].data);
+    expect(accumulated.mxn.datasets[0].data).toEqual(annual.mxn.datasets[0].data);
   });
 });
 

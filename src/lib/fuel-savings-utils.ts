@@ -19,67 +19,46 @@ export interface ChartData {
   datasets: ChartDataset[];
 }
 
-export function buildMonthlyChartData(data: FuelSavingsResponse): ChartData {
+export function buildMonthlyChartData(data: FuelSavingsResponse): { mxn: ChartData; liters: ChartData } {
   const monthlyMXN = Math.round(data.fuelSavingsMXN / 12);
   const monthlyLiters = Math.round(data.fuelSavingsLiters / 12);
   return {
-    labels: MONTHS,
-    datasets: [
-      {
-        label: "Ahorro MXN",
-        data: MONTHS.map(() => monthlyMXN),
-        backgroundColor: "rgba(30, 64, 175, 0.7)",
-      },
-      {
-        label: "Litros ahorrados",
-        data: MONTHS.map(() => monthlyLiters),
-        backgroundColor: "rgba(34, 199, 122, 0.7)",
-      },
-    ],
+    mxn: {
+      labels: MONTHS,
+      datasets: [{ label: "Ahorro MXN", data: MONTHS.map(() => monthlyMXN), backgroundColor: "rgba(30, 64, 175, 0.7)" }],
+    },
+    liters: {
+      labels: MONTHS,
+      datasets: [{ label: "Litros ahorrados", data: MONTHS.map(() => monthlyLiters), backgroundColor: "rgba(34, 199, 122, 0.7)" }],
+    },
   };
 }
 
-export function buildAnnualChartData(data: FuelSavingsResponse): ChartData {
+export function buildAnnualChartData(data: FuelSavingsResponse): { mxn: ChartData; liters: ChartData } {
   const labels = Array.from({ length: data.projectionYears }, (_, i) => `Año ${i + 1}`);
   return {
-    labels,
-    datasets: [
-      {
-        label: "Ahorro MXN",
-        data: labels.map((_, i) => Math.round(data.fuelSavingsMXN * (i + 1))),
-        backgroundColor: "rgba(30, 64, 175, 0.7)",
-      },
-      {
-        label: "Litros ahorrados",
-        data: labels.map((_, i) => Math.round(data.fuelSavingsLiters * (i + 1))),
-        backgroundColor: "rgba(34, 199, 122, 0.7)",
-      },
-    ],
+    mxn: {
+      labels,
+      datasets: [{ label: "Ahorro MXN", data: labels.map((_, i) => Math.round(data.fuelSavingsMXN * (i + 1))), backgroundColor: "rgba(30, 64, 175, 0.7)" }],
+    },
+    liters: {
+      labels,
+      datasets: [{ label: "Litros ahorrados", data: labels.map((_, i) => Math.round(data.fuelSavingsLiters * (i + 1))), backgroundColor: "rgba(34, 199, 122, 0.7)" }],
+    },
   };
 }
 
-export function buildAccumulatedChartData(data: FuelSavingsResponse): ChartData {
+export function buildAccumulatedChartData(data: FuelSavingsResponse): { mxn: ChartData; liters: ChartData } {
   const labels = Array.from({ length: data.projectionYears }, (_, i) => `Año ${i + 1}`);
   return {
-    labels,
-    datasets: [
-      {
-        label: "Ahorro acumulado MXN",
-        data: labels.map((_, i) => Math.round(data.fuelSavingsMXN * (i + 1))),
-        borderColor: "#1e40af",
-        backgroundColor: "rgba(30, 64, 175, 0.1)",
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: "Litros acumulados",
-        data: labels.map((_, i) => Math.round(data.fuelSavingsLiters * (i + 1))),
-        borderColor: "#22c77a",
-        backgroundColor: "rgba(34, 199, 122, 0.1)",
-        fill: true,
-        tension: 0.4,
-      },
-    ],
+    mxn: {
+      labels,
+      datasets: [{ label: "Ahorro acumulado MXN", data: labels.map((_, i) => Math.round(data.fuelSavingsMXN * (i + 1))), borderColor: "#1e40af", backgroundColor: "rgba(30, 64, 175, 0.1)", fill: true, tension: 0.4 }],
+    },
+    liters: {
+      labels,
+      datasets: [{ label: "Litros acumulados", data: labels.map((_, i) => Math.round(data.fuelSavingsLiters * (i + 1))), borderColor: "#22c77a", backgroundColor: "rgba(34, 199, 122, 0.1)", fill: true, tension: 0.4 }],
+    },
   };
 }
 

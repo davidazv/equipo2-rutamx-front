@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Download, Fuel, DollarSign, Gauge, Calendar } from "lucide-react";
+import { BusCountSelector } from "@/components/shared/bus-count-selector";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BarChart } from "@/components/charts/bar-chart";
@@ -90,14 +91,9 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
     <Card ref={cardRef} className={cn(className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-semibold">
-              Ahorro Acumulado en Combustible
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Proyeccion de ahorro por escenario de flota electrica
-            </p>
-          </div>
+          <CardTitle className="text-base font-semibold">
+            Proyeccion de ahorro por escenario de flota electrica
+          </CardTitle>
           {data && (
             <div className="flex gap-1.5">
               <button
@@ -150,33 +146,7 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground shrink-0">Buses:</label>
-            <input
-              type="number"
-              min={1}
-              max={200}
-              value={buses}
-              onChange={(e) => setBuses(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-20 text-xs bg-muted border border-border rounded-md px-2 py-1.5"
-            />
-            <div className="flex gap-1">
-              {[5, 10, 20, 50].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setBuses(n)}
-                  className={cn(
-                    "px-2 py-0.5 text-xs rounded-full border transition-colors",
-                    buses === n
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary"
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
+          <BusCountSelector value={buses} onChange={setBuses} />
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}
@@ -268,20 +238,53 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
               </Tabs.List>
 
               <Tabs.Content value="mensual" className="pt-4">
-                <div className="h-[280px]">
-                  {monthlyChartData && <BarChart data={monthlyChartData} />}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Ahorro en pesos</p>
+                    <div className="h-[240px]">
+                      {monthlyChartData && <BarChart data={monthlyChartData.mxn} />}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Litros diésel ahorrados</p>
+                    <div className="h-[240px]">
+                      {monthlyChartData && <BarChart data={monthlyChartData.liters} />}
+                    </div>
+                  </div>
                 </div>
               </Tabs.Content>
 
               <Tabs.Content value="anual" className="pt-4">
-                <div className="h-[280px]">
-                  {annualChartData && <BarChart data={annualChartData} />}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Ahorro en pesos</p>
+                    <div className="h-[240px]">
+                      {annualChartData && <BarChart data={annualChartData.mxn} />}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Litros diésel ahorrados</p>
+                    <div className="h-[240px]">
+                      {annualChartData && <BarChart data={annualChartData.liters} />}
+                    </div>
+                  </div>
                 </div>
               </Tabs.Content>
 
               <Tabs.Content value="acumulado" className="pt-4">
-                <div className="h-[280px]">
-                  {accumulatedChartData && <LineChart data={accumulatedChartData} />}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Ahorro acumulado en pesos</p>
+                    <div className="h-[240px]">
+                      {accumulatedChartData && <LineChart data={accumulatedChartData.mxn} />}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Litros acumulados ahorrados</p>
+                    <div className="h-[240px]">
+                      {accumulatedChartData && <LineChart data={accumulatedChartData.liters} />}
+                    </div>
+                  </div>
                 </div>
               </Tabs.Content>
             </Tabs.Root>
