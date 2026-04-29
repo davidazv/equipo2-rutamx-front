@@ -11,14 +11,7 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface BarChartDataset {
   label: string;
@@ -44,12 +37,7 @@ export function BarChart({ data, horizontal = false }: BarChartProps) {
     plugins: {
       legend: {
         position: "top" as const,
-        labels: {
-          color: "#475569",
-          font: {
-            size: 12,
-          },
-        },
+        labels: { color: "#475569", font: { size: 12 } },
       },
       tooltip: {
         backgroundColor: "#ffffff",
@@ -60,22 +48,8 @@ export function BarChart({ data, horizontal = false }: BarChartProps) {
       },
     },
     scales: {
-      x: {
-        grid: {
-          color: "#e2e8f0",
-        },
-        ticks: {
-          color: "#475569",
-        },
-      },
-      y: {
-        grid: {
-          color: "#e2e8f0",
-        },
-        ticks: {
-          color: "#475569",
-        },
-      },
+      x: { grid: { color: "#e2e8f0" }, ticks: { color: "#475569" } },
+      y: { grid: { color: "#e2e8f0" }, ticks: { color: "#475569" } },
     },
   };
 

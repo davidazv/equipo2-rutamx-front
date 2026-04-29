@@ -14,14 +14,8 @@ import {
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+  CategoryScale, LinearScale, PointElement, LineElement,
+  Title, Tooltip, Legend, Filler
 );
 
 interface LineChartDataset {
@@ -47,12 +41,7 @@ export function LineChart({ data }: LineChartProps) {
     plugins: {
       legend: {
         position: "top" as const,
-        labels: {
-          color: "#475569",
-          font: {
-            size: 12,
-          },
-        },
+        labels: { color: "#475569", font: { size: 12 } },
       },
       tooltip: {
         backgroundColor: "#ffffff",
@@ -63,31 +52,12 @@ export function LineChart({ data }: LineChartProps) {
       },
     },
     scales: {
-      x: {
-        grid: {
-          color: "#e2e8f0",
-        },
-        ticks: {
-          color: "#475569",
-        },
-      },
-      y: {
-        grid: {
-          color: "#e2e8f0",
-        },
-        ticks: {
-          color: "#475569",
-        },
-      },
+      x: { grid: { color: "#e2e8f0" }, ticks: { color: "#475569" } },
+      y: { grid: { color: "#e2e8f0" }, ticks: { color: "#475569" } },
     },
     elements: {
-      line: {
-        tension: 0.4,
-      },
-      point: {
-        radius: 3,
-        hoverRadius: 5,
-      },
+      line: { tension: 0.4 },
+      point: { radius: 3, hoverRadius: 5 },
     },
   };
 
