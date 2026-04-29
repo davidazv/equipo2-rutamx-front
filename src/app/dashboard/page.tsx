@@ -1,53 +1,88 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Fuel, Leaf } from "lucide-react";
-import { ROIComparisonCard } from "@/components/shared/roi-comparison-card";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
+import { FilterBar } from "@/components/dashboard/filter-bar";
+import { KpiCards } from "@/components/dashboard/kpi-cards";
+import { CostComparisonCard } from "@/components/dashboard/cost-comparison-card";
+import { PaybackChart } from "@/components/dashboard/payback-chart";
 import {
-  getKpiMetrics,
   getBusModels,
   getRoutes,
-  type KpiMetricsResponse,
+  estimateRoi,
   type BusModelResponse,
   type RouteResponse,
+  type RoiEstimateResponse,
 } from "@/lib/api/roi";
 
-function formatCurrency(value: number) {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M MXN`;
-  return `$${value.toLocaleString("es-MX")} MXN`;
-}
-
-function formatNumber(value: number) {
-  return value.toLocaleString("es-MX");
-}
-
-interface DashboardData {
-  kpi: KpiMetricsResponse;
-  busModels: BusModelResponse[];
-  routes: RouteResponse[];
+interface RouteEstimate {
+  route: RouteResponse;
+  estimate: RoiEstimateResponse;
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [busModels, setBusModels] = useState<BusModelResponse[]>([]);
+  const [routes, setRoutes] = useState<RouteResponse[]>([]);
+  const [initLoading, setInitLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
+  const [selectedRoutes, setSelectedRoutes] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<number | null>(null);
+  const [buses, setBuses] = useState(10);
+
+  const [routeEstimates, setRouteEstimates] = useState<RouteEstimate[]>([]);
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState<string | null>(null);
+
+  // Load initial data
   useEffect(() => {
-    Promise.all([getKpiMetrics(), getBusModels(), getRoutes()])
-      .then(([kpi, busModels, routes]) =>
-        setData({ kpi, busModels, routes })
-      )
+    Promise.all([getBusModels(), getRoutes()])
+      .then(([models, rts]) => {
+        const electric = models.filter((m) => m.fuelType === "ELECTRIC");
+        setBusModels(electric);
+        setRoutes(rts);
+        if (rts.length > 0) setSelectedRoutes([rts[0].routeId]);
+        if (electric.length > 0) setSelectedModel(electric[0].id);
+      })
       .catch((err) =>
-        setError(err instanceof Error ? err.message : "Error cargando datos")
+        setInitError(err instanceof Error ? err.message : "Error cargando datos")
       )
-      .finally(() => setLoading(false));
+      .finally(() => setInitLoading(false));
   }, []);
 
-  if (loading) {
+  // Fetch ROI estimates when filters change
+  const fetchEstimates = useCallback(async () => {
+    if (selectedRoutes.length === 0 || selectedModel === null) return;
+
+    setEstimating(true);
+    setEstimateError(null);
+
+    try {
+      const routeMap = new Map(routes.map((r) => [r.routeId, r]));
+      const results = await Promise.all(
+        selectedRoutes.map(async (routeId) => {
+          const est = await estimateRoi(routeId, selectedModel, buses);
+          return { route: routeMap.get(routeId)!, estimate: est };
+        })
+      );
+      setRouteEstimates(results);
+    } catch (err) {
+      setEstimateError(
+        err instanceof Error ? err.message : "Error estimando ROI"
+      );
+      setRouteEstimates([]);
+    } finally {
+      setEstimating(false);
+    }
+  }, [selectedRoutes, selectedModel, buses, routes]);
+
+  useEffect(() => {
+    fetchEstimates();
+  }, [fetchEstimates]);
+
+  if (initLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
         <Spinner size="lg" />
@@ -56,11 +91,11 @@ export default function DashboardPage() {
     );
   }
 
-  if (error) {
+  if (initError) {
     return (
       <ErrorState
         title="Error cargando dashboard"
-        description={error}
+        description={initError}
         action={
           <Button size="sm" onClick={() => window.location.reload()}>
             Reintentar
@@ -70,11 +105,8 @@ export default function DashboardPage() {
     );
   }
 
-  if (!data) return null;
-
-  const electricModels = data.busModels.filter(
-    (m) => m.fuelType === "ELECTRIC"
-  );
+  // First selected route's estimate for KPI cards
+  const primaryEstimate = routeEstimates[0]?.estimate ?? null;
 
   return (
     <div className="space-y-4">
@@ -85,54 +117,37 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <ROIComparisonCard
-        busModels={electricModels}
-        routes={data.routes}
+      <FilterBar
+        routes={routes}
+        busModels={busModels}
+        selectedRoutes={selectedRoutes}
+        selectedModel={selectedModel}
+        buses={buses}
+        onRoutesChange={setSelectedRoutes}
+        onModelChange={setSelectedModel}
+        onBusesChange={setBuses}
       />
 
-      <div className="grid gap-3 md:grid-cols-2">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Ahorro Combustible
-                </p>
-                <p className="text-3xl font-bold tracking-tight tabular-nums">
-                  {formatCurrency(data.kpi.totalFuelSavingsMXN)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Ahorro anual vs diesel ({data.kpi.routesAnalyzed} rutas)
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Fuel className="h-4 w-4" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {estimateError && (
+        <p className="text-xs text-destructive">{estimateError}</p>
+      )}
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  CO2 Reducido
-                </p>
-                <p className="text-3xl font-bold tracking-tight tabular-nums text-green-600">
-                  {formatNumber(Math.round(data.kpi.totalCo2AvoidedTons))} ton
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  CO2 evitado por ano ({data.kpi.routesAnalyzed} rutas)
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Leaf className="h-4 w-4" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {estimating ? (
+        <div className="flex items-center justify-center py-10">
+          <Spinner />
+        </div>
+      ) : (
+        <>
+          <KpiCards estimate={primaryEstimate} />
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <CostComparisonCard estimate={primaryEstimate} />
+            <div />
+          </div>
+
+          <PaybackChart routeEstimates={routeEstimates} />
+        </>
+      )}
     </div>
   );
 }
