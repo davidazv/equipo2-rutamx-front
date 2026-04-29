@@ -51,10 +51,12 @@ export async function getModelRecommendation(
   linea: string,
   dayType?: DayType,
   occupancy?: number,
+  fleetSize?: number,
 ): Promise<ModelRecommendationResponse> {
   const params = new URLSearchParams({ linea });
   if (dayType) params.set("dayType", dayType);
   if (occupancy !== undefined) params.set("occupancy", String(occupancy));
+  if (fleetSize !== undefined) params.set("fleetSize", String(fleetSize));
   return apiFetch<ModelRecommendationResponse>(
     `/api/fleet/model-recommendation?${params}`,
   );

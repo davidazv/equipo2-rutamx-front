@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Bus, Users, TrendingUp } from "lucide-react";
+import { Bus, Users, TrendingUp, Hash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ export function CooSidebar() {
   const [linea, setLinea] = useState("linea 1");
   const [dayType, setDayType] = useState<DayType>("weekday");
   const [occupancy, setOccupancy] = useState(80);
+  const [fleetSize, setFleetSize] = useState<number | null>(null);
 
   const [busCount, setBusCount] = useState<BusCountResponse | null>(null);
   const [modelRec, setModelRec] = useState<ModelRecommendationResponse | null>(
@@ -51,17 +53,22 @@ export function CooSidebar() {
   const [error, setError] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const modelDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Step 1: fetch bus count → set default fleet size → fetch model rec
   const fetchData = useCallback(
     (l: string, d: DayType, o: number) => {
       setLoading(true);
       setError(null);
 
-      Promise.all([getBusCount(l, d, o), getModelRecommendation(l, d, o)])
-        .then(([bc, mr]) => {
+      getBusCount(l, d, o)
+        .then((bc) => {
           setBusCount(bc);
-          setModelRec(mr);
+          const defaultFleet = bc.recommendedBuses;
+          setFleetSize(defaultFleet);
+          return getModelRecommendation(l, d, o, defaultFleet);
         })
+        .then((mr) => setModelRec(mr))
         .catch((err) =>
           setError(err instanceof Error ? err.message : "Error en cálculo"),
         )
@@ -70,6 +77,7 @@ export function CooSidebar() {
     [],
   );
 
+  // When linea/dayType/occupancy change → full refetch (resets fleet size)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -79,6 +87,25 @@ export function CooSidebar() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [linea, dayType, occupancy, fetchData]);
+
+  // When fleet size changes manually → only refetch model recommendation
+  const handleFleetSizeChange = useCallback(
+    (value: number) => {
+      const clamped = Math.max(1, Math.min(999, value));
+      setFleetSize(clamped);
+
+      if (modelDebounceRef.current) clearTimeout(modelDebounceRef.current);
+      modelDebounceRef.current = setTimeout(() => {
+        setModelRec(null);
+        getModelRecommendation(linea, dayType, occupancy, clamped)
+          .then((mr) => setModelRec(mr))
+          .catch((err) =>
+            setError(err instanceof Error ? err.message : "Error en cálculo"),
+          );
+      }, 400);
+    },
+    [linea, dayType, occupancy],
+  );
 
   return (
     <div className="flex flex-col gap-3 p-4 overflow-y-auto h-full">
@@ -196,6 +223,31 @@ export function CooSidebar() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Fleet Size Input */}
+      {busCount && !loading && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-muted-foreground flex items-center gap-1">
+              <Hash className="h-3 w-3" />
+              Tamaño de flota
+            </label>
+            <span className="text-[10px] text-muted-foreground">
+              Sugerido: {busCount.recommendedBuses}
+            </span>
+          </div>
+          <Input
+            type="number"
+            min={1}
+            max={999}
+            value={fleetSize ?? ""}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              if (!isNaN(val)) handleFleetSizeChange(val);
+            }}
+          />
+        </div>
       )}
 
       {/* Model Recommendation */}
