@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Info } from "lucide-react";
+import { Crown, Info, Leaf } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { BusCountSelector } from "@/components/shared/bus-count-selector";
 import { cn } from "@/lib/utils";
 import {
   estimateRoi,
@@ -11,214 +13,255 @@ import {
   type RoiEstimateResponse,
 } from "@/lib/api/roi";
 
-const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-
 interface ROIComparisonCardProps {
   busModels: BusModelResponse[];
   routes: RouteResponse[];
   className?: string;
 }
 
-export function ROIComparisonCard({ busModels, routes, className }: ROIComparisonCardProps) {
-  const [selectedRoute, setSelectedRoute] = useState(routes[0]?.routeId ?? "");
-  const [selectedModel, setSelectedModel] = useState<number | null>(
-    busModels[0]?.id ?? null
+interface ModelEstimate {
+  model: BusModelResponse;
+  estimate: RoiEstimateResponse;
+}
+
+const fmt = (v: number) =>
+  v >= 1_000_000
+    ? `$${(v / 1_000_000).toFixed(1)}M`
+    : `$${Math.round(v).toLocaleString("es-MX")}`;
+
+export function ROIComparisonCard({
+  busModels,
+  routes,
+  className,
+}: ROIComparisonCardProps) {
+  const [selectedRoute, setSelectedRoute] = useState(
+    routes[0]?.routeId ?? ""
   );
   const [buses, setBuses] = useState(10);
-  const [showInfo, setShowInfo] = useState(false);
-  const [est, setEst] = useState<RoiEstimateResponse | null>(null);
+  const [estimates, setEstimates] = useState<ModelEstimate[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRoi = useCallback(async () => {
-    if (!selectedRoute || selectedModel === null || buses < 1) return;
+  const fetchAll = useCallback(async () => {
+    if (!selectedRoute || busModels.length === 0 || buses < 1) return;
+    setLoading(true);
+    setError(null);
     try {
-      const result = await estimateRoi(selectedRoute, selectedModel, buses);
-      setEst(result);
-      setError(null);
+      const results = await Promise.all(
+        busModels.map(async (model) => {
+          const estimate = await estimateRoi(
+            selectedRoute,
+            model.id,
+            buses
+          );
+          return { model, estimate };
+        })
+      );
+      results.sort((a, b) => b.estimate.roiPercent - a.estimate.roiPercent);
+      setEstimates(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error estimando ROI");
-      setEst(null);
+      setError(
+        err instanceof Error ? err.message : "Error estimando ROI"
+      );
+      setEstimates([]);
+    } finally {
+      setLoading(false);
     }
-  }, [selectedRoute, selectedModel, buses]);
+  }, [selectedRoute, busModels, buses]);
 
   useEffect(() => {
-    fetchRoi();
-  }, [fetchRoi]);
+    fetchAll();
+  }, [fetchAll]);
 
-  const fmt = (v: number) =>
-    v >= 1_000_000
-      ? `$${(v / 1_000_000).toFixed(1)}M`
-      : `$${Math.round(v).toLocaleString("es-MX")}`;
+  const best = estimates[0] ?? null;
+  const maxRoi = best?.estimate.roiPercent ?? 1;
 
-  const monthlyROI = MONTHS.map((month, i) => ({
-    month,
-    roi: est ? ((est.netAnnualReturn / 12) * (i + 1)) / est.totalInvestmentMXN * 100 : 0,
-  }));
-
-  const maxROI = monthlyROI[11]?.roi ?? 1;
+  const selectedRouteData = routes.find((r) => r.routeId === selectedRoute);
 
   return (
     <Card className={cn(className)}>
-      <div className="grid lg:grid-cols-2 divide-x divide-border/30">
-        {/* LEFT: ROI por mes */}
-        <div className="p-4">
-          <div className="relative mb-4">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              ROI Proyectado por Mes
-            </CardTitle>
-            <button
-              onMouseEnter={() => setShowInfo(true)}
-              onMouseLeave={() => setShowInfo(false)}
-              className="absolute top-0 right-0 p-1 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Info className="h-4 w-4" />
-            </button>
-            {showInfo && (
-              <div className="absolute top-6 right-0 z-10 w-60 p-3 bg-background border border-border rounded-lg shadow-lg">
-                <p className="text-xs font-medium mb-2">Como leer las barras:</p>
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <div className="h-3 w-4 rounded flex-shrink-0 mt-0.5 bg-primary/60" />
-                    <span><strong>Azul:</strong> ROI acumulado proyectado al mes indicado</span>
-                  </li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Muestra como crece el retorno de inversion mes a mes.
-                </p>
-              </div>
-            )}
-            {est && (
-              <p className="text-2xl font-bold tracking-tight tabular-nums mt-1">
-                {est.roiPercent.toFixed(1)}%
-                <span className="text-xs font-normal text-muted-foreground ml-2">ROI ano 1</span>
-              </p>
-            )}
+      <div className="p-4 space-y-4">
+        {/* Header */}
+        <CardTitle className="text-lg font-bold">
+          Escenarios de expansión de flota eléctrica 12 meses
+        </CardTitle>
+
+        {/* Selectors */}
+        <div className="flex items-center gap-2 flex-wrap">
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">
+                Ruta
+              </label>
+              <select
+                value={selectedRoute}
+                onChange={(e) => setSelectedRoute(e.target.value)}
+                className="text-xs bg-muted border border-border rounded-md px-2 py-1.5"
+              >
+                {routes.map((r) => (
+                  <option key={r.routeId} value={r.routeId}>
+                    {r.routeShortName} — {r.routeLongName?.slice(0, 30)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <BusCountSelector value={buses} onChange={setBuses} />
           </div>
 
-          <div className="space-y-1.5">
-            {monthlyROI.map(({ month, roi }) => (
-              <div key={month} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-7 shrink-0">{month}</span>
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary/60 transition-all duration-300"
-                    style={{ width: `${(roi / maxROI) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-right w-12 shrink-0 font-medium tabular-nums">
-                  {roi.toFixed(1)}%
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <Spinner size="sm" />
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <p className="text-xs text-destructive text-center py-4">
+            {error}
+          </p>
+        )}
+
+        {/* Content */}
+        {!loading && !error && estimates.length > 0 && (
+          <>
+            {/* Model ranking */}
+            <div className="space-y-2">
+              {/* Table header */}
+              <div className="hidden sm:grid grid-cols-[1fr_60px_70px_80px_80px] gap-2 px-2 text-xs text-muted-foreground font-medium">
+                <span>Modelo eléctrico</span>
+                <span className="text-right">ROI</span>
+                <span className="text-right">Recupera</span>
+                <span className="text-right">Ahorro/año</span>
+                <span className="text-right text-green-600 flex items-center justify-end gap-1">
+                  <Leaf className="h-3 w-3" />
+                  CO₂ evit.
                 </span>
               </div>
-            ))}
-          </div>
 
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/30">
-            <div className="flex items-center gap-1.5">
-              <div className="h-2 w-4 rounded-full bg-primary/60" />
-              <span className="text-xs text-muted-foreground">ROI acumulado proyectado</span>
-            </div>
-          </div>
-        </div>
+              {estimates.map(({ model, estimate }, i) => {
+                const isBest = i === 0;
+                const barWidth =
+                  maxRoi > 0
+                    ? (estimate.roiPercent / maxRoi) * 100
+                    : 0;
 
-        {/* RIGHT: Estimador */}
-        <div className="p-4">
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Ruta</label>
-                <select
-                  value={selectedRoute}
-                  onChange={(e) => setSelectedRoute(e.target.value)}
-                  className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5"
-                >
-                  {routes.map((r) => (
-                    <option key={r.routeId} value={r.routeId}>
-                      {r.routeShortName} — {r.routeLongName?.slice(0, 30)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Modelo de bus</label>
-                <select
-                  value={selectedModel ?? ""}
-                  onChange={(e) => setSelectedModel(Number(e.target.value))}
-                  className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5"
-                >
-                  {busModels.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.manufacturer} {m.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-muted-foreground shrink-0">Buses:</label>
-              <input
-                type="number"
-                min={1}
-                max={200}
-                value={buses}
-                onChange={(e) => setBuses(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-20 text-xs bg-muted border border-border rounded-md px-2 py-1.5"
-              />
-              <div className="flex gap-1">
-                {[5, 10, 20, 50].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setBuses(n)}
+                return (
+                  <div
+                    key={model.id}
                     className={cn(
-                      "px-2 py-0.5 text-xs rounded-full border transition-colors",
-                      buses === n
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary"
+                      "rounded-lg border p-2 transition-colors",
+                      isBest
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-border/50 bg-muted/30"
                     )}
                   >
-                    {n}
-                  </button>
-                ))}
-              </div>
+                    {/* Mobile + Desktop layout */}
+                    <div className="sm:grid grid-cols-[1fr_60px_70px_80px_80px] gap-2 items-center">
+                      {/* Model name + bar */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          {isBest && (
+                            <Crown className="h-3.5 w-3.5 text-amber-500" />
+                          )}
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              isBest && "text-primary"
+                            )}
+                          >
+                            {model.manufacturer} {model.name}
+                          </span>
+                          <div className="relative group">
+                            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                            <div className="absolute left-0 bottom-full mb-1 z-10 hidden group-hover:block w-44 p-2 bg-background border border-border rounded-lg shadow-lg">
+                              <p className="text-xs font-medium mb-1">Costo unitario</p>
+                              <p className="text-xs tabular-nums">${model.unitCostUsd.toLocaleString("es-MX")} USD</p>
+                              <p className="text-xs text-muted-foreground mt-1">Inversión total ({buses} buses)</p>
+                              <p className="text-xs tabular-nums">{fmt(estimate.totalInvestmentMXN)} MXN</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-all duration-500",
+                              isBest ? "bg-primary" : "bg-primary/40"
+                            )}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Metrics - stacked on mobile, inline on desktop */}
+                      <div className="flex sm:contents gap-3 mt-2 sm:mt-0 flex-wrap">
+                        <span
+                          className={cn(
+                            "text-sm font-bold tabular-nums text-right",
+                            isBest
+                              ? "text-primary"
+                              : "text-foreground"
+                          )}
+                        >
+                          {estimate.roiPercent.toFixed(1)}%
+                        </span>
+                        <span className="text-sm tabular-nums text-right text-muted-foreground">
+                          {estimate.paybackYears.toFixed(1)} años
+                        </span>
+                        <span className="text-sm font-medium tabular-nums text-right text-green-600">
+                          {fmt(estimate.netAnnualReturn)}
+                        </span>
+                        <span className="text-sm font-bold tabular-nums text-right text-green-600">
+                          {Math.round(
+                            estimate.co2AvoidedTons
+                          ).toLocaleString("es-MX")}{" "}
+                          ton
+                        </span>
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
             </div>
 
-            {error && (
-              <p className="text-xs text-destructive">{error}</p>
-            )}
-
-            {est && (
-              <div className="space-y-1.5 pt-1">
-                <div className="p-2 rounded-lg bg-muted">
-                  <p className="text-xs text-muted-foreground">Recuperacion</p>
-                  <p className="text-lg font-bold tabular-nums">{est.paybackYears.toFixed(1)} anos</p>
+            {/* Summary */}
+            {best && (
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Mejor ROI
+                  </p>
+                  <p className="text-lg font-bold text-primary tabular-nums">
+                    {best.estimate.roiPercent.toFixed(1)}%
+                  </p>
                 </div>
-
-                <div className="p-2 rounded-lg bg-muted space-y-1">
-                  <p className="text-xs font-medium">Costo operativo anual (electrico vs diesel)</p>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Electrico</span>
-                    <span className="text-primary font-medium tabular-nums">{fmt(est.electricCostPerYear)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Diesel equiv.</span>
-                    <span className="text-destructive font-medium tabular-nums">{fmt(est.dieselCostPerYear)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs border-t border-border/30 pt-1">
-                    <span className="text-muted-foreground font-medium">Ahorro total/ano</span>
-                    <span className="text-green-600 font-bold tabular-nums">{fmt(est.netAnnualReturn)}</span>
-                  </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Recuperación
+                  </p>
+                  <p className="text-lg font-bold tabular-nums">
+                    {best.estimate.paybackYears.toFixed(1)} años
+                  </p>
                 </div>
-
-                <div className="p-2 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-xs text-muted-foreground">CO2 evitado/ano</p>
-                  <p className="text-sm font-bold text-green-600 tabular-nums">
-                    {Math.round(est.co2AvoidedTons).toLocaleString("es-MX")} ton
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Ahorro vs diésel
+                  </p>
+                  <p className="text-lg font-bold text-green-600 tabular-nums">
+                    {fmt(best.estimate.netAnnualReturn)}
                   </p>
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && estimates.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-8">
+            No hay modelos eléctricos disponibles para comparar.
+          </p>
+        )}
       </div>
     </Card>
   );

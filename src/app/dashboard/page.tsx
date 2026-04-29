@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Fuel, Leaf } from "lucide-react";
 import { ROIComparisonCard } from "@/components/shared/roi-comparison-card";
+import { FuelSavingsCard } from "@/components/shared/fuel-savings-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
@@ -87,6 +88,11 @@ export default function DashboardPage() {
 
       <ROIComparisonCard
         busModels={electricModels}
+        routes={data.routes}
+      />
+
+      <FuelSavingsCard
+        busModels={data.busModels}
         routes={data.routes}
       />
 

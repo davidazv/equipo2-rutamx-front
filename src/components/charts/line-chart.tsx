@@ -18,17 +18,19 @@ ChartJS.register(
   Title, Tooltip, Legend, Filler
 );
 
+interface LineChartDataset {
+  label: string;
+  data: number[];
+  borderColor?: string;
+  backgroundColor?: string | string[];
+  fill?: boolean;
+  tension?: number;
+}
+
 interface LineChartProps {
   data: {
     labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor?: string;
-      fill?: boolean;
-      tension?: number;
-    }[];
+    datasets: LineChartDataset[];
   };
 }
 

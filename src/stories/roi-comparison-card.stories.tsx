@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ROIComparisonCard } from "@/components/shared/roi-comparison-card";
 
 const MOCK_MODELS = [
-  { id: 1, name: "E12", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 250, passengerCapacity: 80, unitCostUsd: 280000, batteryCapacityKwh: 350, energyConsumptionKwhKm: 1.2, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.8, co2EmissionsGKm: 0 },
-  { id: 2, name: "K9", manufacturer: "BYD", fuelType: "ELECTRIC" as const, autonomyKm: 220, passengerCapacity: 70, unitCostUsd: 320000, batteryCapacityKwh: 300, energyConsumptionKwhKm: 1.1, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.7, co2EmissionsGKm: 0 },
+  { id: 1, name: "E12PRO", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 300, passengerCapacity: 85, unitCostUsd: 420000, batteryCapacityKwh: 352, energyConsumptionKwhKm: 1.0, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
+  { id: 2, name: "ZK5120C", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 130, passengerCapacity: 85, unitCostUsd: 300000, batteryCapacityKwh: 127, energyConsumptionKwhKm: 1.0, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
+  { id: 3, name: "ZK5180C", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 120, passengerCapacity: 140, unitCostUsd: 550000, batteryCapacityKwh: 155, energyConsumptionKwhKm: 1.3, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.15, co2EmissionsGKm: 0 },
 ];
 
 const MOCK_ROUTES = [
@@ -16,22 +17,33 @@ const meta = {
   component: ROIComparisonCard,
   tags: ["autodocs"],
   parameters: { layout: "padded" },
+  args: {
+    busModels: MOCK_MODELS,
+    routes: MOCK_ROUTES,
+  },
 } satisfies Meta<typeof ROIComparisonCard>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Default: Story = {};
+
+export const SingleModel: Story = {
   args: {
-    busModels: MOCK_MODELS,
-    routes: MOCK_ROUTES,
+    busModels: [MOCK_MODELS[0]],
   },
 };
 
 export const CustomWidth: Story = {
-  render: () => (
-    <div className="max-w-2xl">
-      <ROIComparisonCard busModels={MOCK_MODELS} routes={MOCK_ROUTES} />
-    </div>
-  ),
+  args: {
+    busModels: MOCK_MODELS,
+    routes: MOCK_ROUTES,
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-2xl">
+        <Story />
+      </div>
+    ),
+  ],
 };

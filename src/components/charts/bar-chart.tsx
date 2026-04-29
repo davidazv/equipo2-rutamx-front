@@ -13,16 +13,18 @@ import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+interface BarChartDataset {
+  label: string;
+  data: number[];
+  backgroundColor?: string | string[];
+  borderColor?: string | string[];
+  borderWidth?: number;
+}
+
 interface BarChartProps {
   data: {
     labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      backgroundColor: string | string[];
-      borderColor?: string | string[];
-      borderWidth?: number;
-    }[];
+    datasets: BarChartDataset[];
   };
   horizontal?: boolean;
 }
