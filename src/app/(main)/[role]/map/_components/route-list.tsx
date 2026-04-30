@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Ruler } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, formatNumber } from "@/lib/utils";
 import type { RouteWithShapes } from "@/lib/api/energy";
 import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
 import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
 import { varyColor, ensureContrast } from "@/lib/map/color-utils";
+import { RouteCard } from "./route-card";
 
 function getAgencyDisplayColor(agency: AgencyWithColorsResponse): string {
   if (agency.agencyColor) return `#${agency.agencyColor}`;
@@ -27,6 +27,7 @@ interface RouteListProps {
   routes: RouteWithShapes[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string | null) => void;
+  onConfirm: (routeId: string) => void;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   agencies: AgencyWithColorsResponse[];
   selectedAgencyId: string | null;
@@ -37,6 +38,7 @@ export function RouteList({
   routes,
   selectedRouteId,
   onRouteSelect,
+  onConfirm,
   getRouteColor,
   agencies,
   selectedAgencyId,
@@ -44,9 +46,10 @@ export function RouteList({
 }: RouteListProps) {
   const [search, setSearch] = useState("");
 
-  const filteredRoutes = routes.filter((route) =>
-    route.routeLongName.toLowerCase().includes(search.toLowerCase()) ||
-    route.routeShortName.toLowerCase().includes(search.toLowerCase())
+  const filteredRoutes = routes.filter(
+    (route) =>
+      route.routeLongName.toLowerCase().includes(search.toLowerCase()) ||
+      route.routeShortName.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -74,7 +77,9 @@ export function RouteList({
                             <span
                               key={i}
                               className="h-2 w-2 rounded-full"
-                              style={{ backgroundColor: ensureContrast(`#${c}`) }}
+                              style={{
+                                backgroundColor: ensureContrast(`#${c}`),
+                              }}
                             />
                           ))}
                         </span>
@@ -116,49 +121,39 @@ export function RouteList({
               const color = ensureContrast(varyColor(baseColor, route.routeId));
 
               return (
-                <button
+                <RouteCard
                   key={route.routeId}
-                  onClick={() =>
-                    onRouteSelect(isSelected ? null : route.routeId)
-                  }
-                  className={cn(
-                    "w-full p-4 text-left transition-colors",
-                    isSelected ? "bg-primary/10" : "hover:bg-muted"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="h-3 w-3 rounded-full mt-1.5 flex-shrink-0"
-                      style={{ backgroundColor: color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge
-                          variant="outline"
-                          className="text-xs"
-                          style={{ borderColor: color, color }}
-                        >
-                          {route.routeShortName}
-                        </Badge>
-                      </div>
-                      <p className="text-sm font-medium truncate">
-                        {route.routeLongName}
-                      </p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Ruler className="h-3 w-3" />
-                          {formatNumber(route.distanceKm, 1)} km
-                        </span>
-                        <span>{route.coordinates.length} puntos</span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
+                  color={color}
+                  shortName={route.routeShortName}
+                  longName={route.routeLongName}
+                  distanceKm={route.distanceKm}
+                  pointCount={route.coordinates.length}
+                  isSelected={isSelected}
+                  onClick={() => {
+                    if (isSelected) {
+                      onConfirm(route.routeId);
+                    } else {
+                      onRouteSelect(route.routeId);
+                    }
+                  }}
+                />
               );
             })}
           </div>
         )}
       </div>
+
+      {selectedRouteId && (
+        <div className="flex-shrink-0 p-3 border-t border-border">
+          <Button
+            className="w-full gap-2"
+            onClick={() => onConfirm(selectedRouteId)}
+          >
+            Ver detalle
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

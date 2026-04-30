@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, Zap, AlertTriangle, CheckCircle, Repeat } from "lucide-react";
+import { Users, AlertTriangle, CheckCircle, Repeat } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -18,7 +18,6 @@ import {
   getBusModels,
   calculateEnergyConsumption,
   type BusModelResponse,
-  type RouteWithShapes,
   type EnergyConsumptionResponse,
 } from "@/lib/api/energy";
 
@@ -30,15 +29,11 @@ function formatNumber(value: number, decimals = 1): string {
 }
 
 interface EnergyConsumptionCalculatorProps {
-  routes: RouteWithShapes[];
-  selectedRouteId: string | null;
-  onRouteChange: (routeId: string | null) => void;
+  selectedRouteId: string;
 }
 
 export function EnergyConsumptionCalculator({
-  routes,
   selectedRouteId,
-  onRouteChange,
 }: EnergyConsumptionCalculatorProps) {
   const [busModels, setBusModels] = useState<BusModelResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +80,7 @@ export function EnergyConsumptionCalculator({
   );
 
   useEffect(() => {
-    if (!selectedRouteId || !selectedBusModelId) {
+    if (!selectedBusModelId) {
       setResult(null);
       return;
     }
@@ -125,34 +120,7 @@ export function EnergyConsumptionCalculator({
   }
 
   return (
-    <div className="flex-shrink-0 border-t border-border p-4 space-y-4 overflow-y-auto">
-      <h3 className="text-sm font-semibold flex items-center gap-2">
-        <Zap className="h-4 w-4 text-primary" />
-        Consumo Energetico por Ocupacion
-      </h3>
-
-      {/* Route selector */}
-      <div>
-        <label className="text-xs text-muted-foreground mb-2 block">
-          Ruta
-        </label>
-        <Select
-          value={selectedRouteId ?? ""}
-          onValueChange={(val) => onRouteChange(val || null)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona una ruta" />
-          </SelectTrigger>
-          <SelectContent>
-            {routes.map((route) => (
-              <SelectItem key={route.routeId} value={route.routeId}>
-                {route.routeShortName} — {route.routeLongName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
+    <div className="p-4 space-y-4">
       {/* Bus model selector */}
       <div>
         <label className="text-xs text-muted-foreground mb-2 block">
@@ -204,7 +172,11 @@ export function EnergyConsumptionCalculator({
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Ruta</span>
           <span className="text-sm font-medium">
-            {calculating ? "..." : result ? `${formatNumber(result.routeDistanceKm)} km` : "-- km"}
+            {calculating
+              ? "..."
+              : result
+                ? `${formatNumber(result.routeDistanceKm)} km`
+                : "-- km"}
           </span>
         </div>
 
@@ -213,7 +185,11 @@ export function EnergyConsumptionCalculator({
             Consumo Estimado
           </span>
           <span className="text-sm font-medium text-primary">
-            {calculating ? "..." : result ? `${formatNumber(result.estimatedConsumptionKwh)} kWh` : "-- kWh"}
+            {calculating
+              ? "..."
+              : result
+                ? `${formatNumber(result.estimatedConsumptionKwh)} kWh`
+                : "-- kWh"}
           </span>
         </div>
 
@@ -232,7 +208,11 @@ export function EnergyConsumptionCalculator({
                     : "text-red-500"
             }`}
           >
-            {calculating ? "..." : result ? `${formatNumber(result.batteryPercentAfter)}%` : "--%"}
+            {calculating
+              ? "..."
+              : result
+                ? `${formatNumber(result.batteryPercentAfter)}%`
+                : "--%"}
           </span>
         </div>
 
@@ -241,7 +221,11 @@ export function EnergyConsumptionCalculator({
             Autonomia Restante
           </span>
           <span className="text-sm font-medium">
-            {calculating ? "..." : result ? `${formatNumber(result.remainingRangeKm)} km` : "-- km"}
+            {calculating
+              ? "..."
+              : result
+                ? `${formatNumber(result.remainingRangeKm)} km`
+                : "-- km"}
           </span>
         </div>
 
@@ -255,9 +239,12 @@ export function EnergyConsumptionCalculator({
               ? "..."
               : result
                 ? (() => {
-                    const consumptionPerTrip = 100 - result.batteryPercentAfter;
+                    const consumptionPerTrip =
+                      100 - result.batteryPercentAfter;
                     if (consumptionPerTrip <= 0) return "--";
-                    const roundTrips = Math.floor(100 / (2 * consumptionPerTrip));
+                    const roundTrips = Math.floor(
+                      100 / (2 * consumptionPerTrip)
+                    );
                     return roundTrips;
                   })()
                 : "--"}
@@ -288,7 +275,7 @@ export function EnergyConsumptionCalculator({
               variant="outline"
               className="w-full justify-center gap-1 text-muted-foreground"
             >
-              Selecciona ruta y modelo
+              Selecciona modelo de bus
             </Badge>
           )}
         </div>
