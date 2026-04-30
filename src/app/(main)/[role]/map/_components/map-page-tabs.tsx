@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MapPageTab } from "./use-map-page-state";
 
 const TAB_LABELS: Record<MapPageTab, string> = {
-  map: "Mapa de Rutas",
+  map: "Consumo Energético",
   fleet: "Optimización de Flota",
 };
 
