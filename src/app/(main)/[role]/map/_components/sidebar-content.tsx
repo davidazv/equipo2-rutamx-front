@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { Zap, Bus } from "lucide-react";
 import type { MapPageTab } from "./use-map-page-state";
 import type { RouteWithShapes } from "@/lib/api/energy";
-import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
 import { formatNumber } from "@/lib/utils";
 import { varyColor, ensureContrast } from "@/lib/map/color-utils";
 import { RouteMasterDetail } from "./route-master-detail";
@@ -19,9 +18,6 @@ interface SidebarContentProps {
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string | null) => void;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
-  agencies: AgencyWithColorsResponse[];
-  selectedAgencyId: string | null;
-  onAgencyChange: (agencyId: string) => void;
 }
 
 export function SidebarContent({
@@ -30,9 +26,6 @@ export function SidebarContent({
   selectedRouteId,
   onRouteSelect,
   getRouteColor,
-  agencies,
-  selectedAgencyId,
-  onAgencyChange,
 }: SidebarContentProps): ReactNode {
   const [isDetailView, setIsDetailView] = useState(false);
 
@@ -96,9 +89,6 @@ export function SidebarContent({
           onRouteSelect={onRouteSelect}
           onConfirm={() => setIsDetailView(true)}
           getRouteColor={getRouteColor}
-          agencies={agencies}
-          selectedAgencyId={selectedAgencyId}
-          onAgencyChange={onAgencyChange}
         />
       }
       detailContent={detailContent}

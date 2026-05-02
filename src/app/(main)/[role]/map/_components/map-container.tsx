@@ -11,6 +11,9 @@ interface MapContainerProps {
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   visibleAgencyIds: string[];
   agencies: AgencyWithColorsResponse[];
+  targetBounds?: [[number, number], [number, number]] | null;
+  unselectedOpacity?: number;
+  unselectedLineWidth?: number;
 }
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
@@ -22,6 +25,9 @@ interface MapInnerProps {
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   visibleAgencyIds: string[];
   agencies: AgencyWithColorsResponse[];
+  targetBounds?: [[number, number], [number, number]] | null;
+  unselectedOpacity?: number;
+  unselectedLineWidth?: number;
 }
 
 export function MapContainer({
@@ -30,6 +36,9 @@ export function MapContainer({
   getRouteColor,
   visibleAgencyIds,
   agencies,
+  targetBounds,
+  unselectedOpacity,
+  unselectedLineWidth,
 }: MapContainerProps) {
   const [MapComponent, setMapComponent] =
     useState<React.ComponentType<MapInnerProps> | null>(null);
@@ -71,6 +80,9 @@ export function MapContainer({
       getRouteColor={getRouteColor}
       visibleAgencyIds={visibleAgencyIds}
       agencies={agencies}
+      targetBounds={targetBounds}
+      unselectedOpacity={unselectedOpacity}
+      unselectedLineWidth={unselectedLineWidth}
     />
   );
 }
