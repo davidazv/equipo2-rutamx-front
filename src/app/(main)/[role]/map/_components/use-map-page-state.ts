@@ -6,13 +6,17 @@ import {
   type DashboardRole,
 } from "@/hooks/use-current-role";
 
-export type MapPageTab = "map" | "fleet";
+export type MapPageTab =
+  | "map"
+  | "fleet"
+  | "campanas-ambientales"
+  | "optimizacion-flota";
 
 const TAB_ACCESS: Record<DashboardRole, readonly MapPageTab[]> = {
-  ceo: ["map", "fleet"],
-  coo: ["map", "fleet"],
-  cmo: ["map"],
-  admin: ["map", "fleet"],
+  admin: ["map", "optimizacion-flota", "campanas-ambientales"],
+  ceo:   ["map", "optimizacion-flota"],
+  coo:   ["map", "optimizacion-flota"],
+  cmo:   ["optimizacion-flota", "campanas-ambientales"],
 };
 
 export function useMapPageState() {

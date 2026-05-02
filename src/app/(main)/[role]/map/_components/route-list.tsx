@@ -4,24 +4,9 @@ import { useState } from "react";
 import { Search, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { RouteWithShapes } from "@/lib/api/energy";
-import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
-import { DEFAULT_ROUTE_COLOR } from "@/constants/map";
 import { varyColor, ensureContrast } from "@/lib/map/color-utils";
 import { RouteCard } from "./route-card";
-
-function getAgencyDisplayColor(agency: AgencyWithColorsResponse): string {
-  if (agency.agencyColor) return `#${agency.agencyColor}`;
-  if (agency.sampleRouteColors?.length) return `#${agency.sampleRouteColors[0]}`;
-  return DEFAULT_ROUTE_COLOR;
-}
 
 interface RouteListProps {
   routes: RouteWithShapes[];
@@ -29,9 +14,6 @@ interface RouteListProps {
   onRouteSelect: (routeId: string | null) => void;
   onConfirm: (routeId: string) => void;
   getRouteColor: (route: RouteWithShapes, index: number) => string;
-  agencies: AgencyWithColorsResponse[];
-  selectedAgencyId: string | null;
-  onAgencyChange: (agencyId: string) => void;
 }
 
 export function RouteList({
@@ -40,9 +22,6 @@ export function RouteList({
   onRouteSelect,
   onConfirm,
   getRouteColor,
-  agencies,
-  selectedAgencyId,
-  onAgencyChange,
 }: RouteListProps) {
   const [search, setSearch] = useState("");
 
@@ -54,49 +33,7 @@ export function RouteList({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="p-4 border-b border-border space-y-3">
-        {agencies.length > 0 && (
-          <Select
-            value={selectedAgencyId ?? ""}
-            onValueChange={onAgencyChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo de transporte" />
-            </SelectTrigger>
-            <SelectContent>
-              {agencies.map((agency) => {
-                const colors = agency.sampleRouteColors ?? [];
-                const fallback = ensureContrast(getAgencyDisplayColor(agency));
-
-                return (
-                  <SelectItem key={agency.agencyId} value={agency.agencyId}>
-                    <span className="flex items-center gap-2">
-                      {agency.multiColor && colors.length > 1 ? (
-                        <span className="flex gap-0.5 flex-shrink-0">
-                          {colors.slice(0, 3).map((c, i) => (
-                            <span
-                              key={i}
-                              className="h-2 w-2 rounded-full"
-                              style={{
-                                backgroundColor: ensureContrast(`#${c}`),
-                              }}
-                            />
-                          ))}
-                        </span>
-                      ) : (
-                        <span
-                          className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: fallback }}
-                        />
-                      )}
-                      {agency.agencyName}
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        )}
+      <div className="p-4 border-b border-border">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
