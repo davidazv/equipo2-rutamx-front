@@ -12,6 +12,9 @@ import {
   Users,
   Bus,
   X,
+  Zap,
+  Flame,
+  Droplets,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -30,10 +33,16 @@ import {
 import { getUsers, reinstateUser } from '@/lib/api/users'
 import type { User, Role, UserStatus } from '@/lib/api/users'
 
+import { getBusModels } from '@/lib/api/bus-models'
+import type { BusModel, FuelType } from '@/lib/api/bus-models'
+
 import { UserCreateForm } from './components/UserCreateForm'
 import { UserEditModal } from './components/UserEditModal'
 import { UserDeleteModal } from './components/UserDeleteModal'
 import { UserSuspendModal } from './components/UserSuspendModal'
+import { BusModelCreateModal } from './components/BusModelCreateModal'
+import { BusModelEditModal } from './components/BusModelEditModal'
+import { BusModelDeleteModal } from './components/BusModelDeleteModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,6 +56,14 @@ interface Toast {
 
 function formatDate(iso: string): string {
   return iso.slice(0, 10)
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value)
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -63,6 +80,24 @@ const STATUS_LABELS: Record<UserStatus, string> = {
   SUSPENDED: 'Suspendido',
 }
 
+const FUEL_TYPE_LABELS: Record<FuelType, string> = {
+  ELECTRIC: 'Eléctrico',
+  HYBRID: 'Híbrido',
+  HYDROGEN: 'Hidrógeno',
+}
+
+const FUEL_TYPE_ICONS: Record<FuelType, React.ReactNode> = {
+  ELECTRIC: <Zap className="h-3 w-3" />,
+  HYBRID: <Flame className="h-3 w-3" />,
+  HYDROGEN: <Droplets className="h-3 w-3" />,
+}
+
+const FUEL_TYPE_VARIANT: Record<FuelType, 'success' | 'default' | 'secondary'> = {
+  ELECTRIC: 'success',
+  HYBRID: 'default',
+  HYDROGEN: 'secondary',
+}
+
 function RoleBadge({ role }: { role: Role }) {
   return (
     <Badge variant={role === 'ADMIN' ? 'default' : 'secondary'}>
@@ -73,10 +108,17 @@ function RoleBadge({ role }: { role: Role }) {
 
 function StatusBadge({ status }: { status: UserStatus }) {
   return (
-    <Badge
-      variant={status === 'ACTIVE' ? 'success' : 'warning'}
-    >
+    <Badge variant={status === 'ACTIVE' ? 'success' : 'warning'}>
       {STATUS_LABELS[status]}
+    </Badge>
+  )
+}
+
+function FuelTypeBadge({ fuelType }: { fuelType: FuelType }) {
+  return (
+    <Badge variant={FUEL_TYPE_VARIANT[fuelType]} className="gap-1">
+      {FUEL_TYPE_ICONS[fuelType]}
+      {FUEL_TYPE_LABELS[fuelType]}
     </Badge>
   )
 }
@@ -106,19 +148,28 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function UsersPage() {
-  // ── State ──────────────────────────────────────────────────────────────
+  // ── State – Users ──────────────────────────────────────────────────────
   const [users, setUsers] = useState<User[]>([])
-  const [search, setSearch] = useState('')
-  const [toasts, setToasts] = useState<Toast[]>([])
-
+  const [userSearch, setUserSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null)
 
+  // ── State – Bus models ─────────────────────────────────────────────────
+  const [busModels, setBusModels] = useState<BusModel[]>([])
+  const [busSearch, setBusSearch] = useState('')
+  const [busCreateOpen, setBusCreateOpen] = useState(false)
+  const [editingBusModel, setEditingBusModel] = useState<BusModel | null>(null)
+  const [deleteBusTarget, setDeleteBusTarget] = useState<BusModel | null>(null)
+
+  // ── State – Shared ─────────────────────────────────────────────────────
+  const [toasts, setToasts] = useState<Toast[]>([])
+
   // ── Data loading ───────────────────────────────────────────────────────
   useEffect(() => {
     getUsers().then(setUsers)
+    getBusModels().then(setBusModels)
   }, [])
 
   // ── Toast helpers ──────────────────────────────────────────────────────
@@ -134,7 +185,7 @@ export default function UsersPage() {
 
   // ── Filtered users ─────────────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
-    const q = search.toLowerCase()
+    const q = userSearch.toLowerCase()
     if (!q) return users
     return users.filter(
       (u) =>
@@ -142,7 +193,19 @@ export default function UsersPage() {
         u.email.toLowerCase().includes(q) ||
         u.role.toLowerCase().includes(q)
     )
-  }, [users, search])
+  }, [users, userSearch])
+
+  // ── Filtered bus models ────────────────────────────────────────────────
+  const filteredBusModels = useMemo(() => {
+    const q = busSearch.toLowerCase()
+    if (!q) return busModels
+    return busModels.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.manufacturer.toLowerCase().includes(q) ||
+        m.fuel_type.toLowerCase().includes(q)
+    )
+  }, [busModels, busSearch])
 
   // ── Reinstate ──────────────────────────────────────────────────────────
   async function handleReinstate(user: User) {
@@ -187,8 +250,8 @@ export default function UsersPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
               <Input
                 placeholder="Buscar usuarios..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -220,10 +283,7 @@ export default function UsersPage() {
               <TableBody>
                 {filteredUsers.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-text-muted py-12"
-                    >
+                    <TableCell colSpan={6} className="text-center text-text-muted py-12">
                       No se encontraron usuarios.
                     </TableCell>
                   </TableRow>
@@ -233,35 +293,18 @@ export default function UsersPage() {
                     <TableCell className="font-medium">
                       {user.firstName} {user.lastName}
                     </TableCell>
-                    <TableCell className="text-text-secondary">
-                      {user.email}
-                    </TableCell>
-                    <TableCell>
-                      <RoleBadge role={user.role} />
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={user.status} />
-                    </TableCell>
-                    <TableCell className="text-text-secondary">
-                      {formatDate(user.updatedAt)}
-                    </TableCell>
+                    <TableCell className="text-text-secondary">{user.email}</TableCell>
+                    <TableCell><RoleBadge role={user.role} /></TableCell>
+                    <TableCell><StatusBadge status={user.status} /></TableCell>
+                    <TableCell className="text-text-secondary">{formatDate(user.updatedAt)}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
-                        {/* Edit */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingUser(user)}
-                          title="Editar usuario"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => setEditingUser(user)} title="Editar usuario">
                           <Pencil className="h-4 w-4" />
                         </Button>
-
-                        {/* Suspend / Reinstate */}
                         {user.status === 'ACTIVE' ? (
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            variant="ghost" size="icon"
                             onClick={() => setSuspendTarget(user)}
                             title="Suspender usuario"
                             className="text-warning hover:text-warning hover:bg-warning/10"
@@ -270,8 +313,7 @@ export default function UsersPage() {
                           </Button>
                         ) : (
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            variant="ghost" size="icon"
                             onClick={() => handleReinstate(user)}
                             title="Reactivar usuario"
                             className="text-success hover:text-success hover:bg-success/10"
@@ -279,11 +321,8 @@ export default function UsersPage() {
                             <CheckCircle2 className="h-4 w-4" />
                           </Button>
                         )}
-
-                        {/* Delete */}
                         <Button
-                          variant="ghost"
-                          size="icon"
+                          variant="ghost" size="icon"
                           onClick={() => setDeleteTarget(user)}
                           title="Eliminar usuario"
                           className="text-danger hover:text-danger hover:bg-danger/10"
@@ -299,23 +338,93 @@ export default function UsersPage() {
           </div>
         </TabsContent>
 
-        {/* ── Buses tab ──────────────────────────────────────────────────── */}
+        {/* ── Catálogo de Buses tab ──────────────────────────────────────── */}
         <TabsContent value="buses">
-          <div className="rounded-xl border border-border bg-surface shadow-border p-12 text-center text-text-muted">
-            <Bus className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p className="text-body">Catálogo de Buses — próximamente</p>
+          {/* Toolbar */}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="relative w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
+              <Input
+                placeholder="Buscar modelos..."
+                value={busSearch}
+                onChange={(e) => setBusSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button onClick={() => setBusCreateOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Agregar Modelo
+            </Button>
+          </div>
+
+          {/* Table */}
+          <div className="rounded-xl border border-border bg-surface shadow-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Modelo</TableHead>
+                  <TableHead>Fabricante</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Autonomía (km)</TableHead>
+                  <TableHead className="text-right">Pasajeros</TableHead>
+                  <TableHead className="text-right">Batería (kWh)</TableHead>
+                  <TableHead className="text-right">Vel. Máx. (km/h)</TableHead>
+                  <TableHead className="text-right">Costo (USD)</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBusModels.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-text-muted py-12">
+                      No se encontraron modelos.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {filteredBusModels.map((model) => (
+                  <TableRow key={model.id}>
+                    <TableCell className="font-medium">{model.name}</TableCell>
+                    <TableCell className="text-text-secondary">{model.manufacturer}</TableCell>
+                    <TableCell><FuelTypeBadge fuelType={model.fuel_type} /></TableCell>
+                    <TableCell className="text-right font-mono text-sm">{model.autonomy_km}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">{model.passenger_capacity}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">{model.battery_capacity_kwh}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">{model.max_speed_kmh}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">{formatCurrency(model.unit_cost_usd)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => setEditingBusModel(model)}
+                          title="Editar modelo"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => setDeleteBusTarget(model)}
+                          title="Eliminar modelo"
+                          className="text-danger hover:text-danger hover:bg-danger/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* ── Modals ─────────────────────────────────────────────────────── */}
+      {/* ── Modals – Usuarios ──────────────────────────────────────────── */}
       <UserCreateForm
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(user) => setUsers((prev) => [...prev, user])}
         addToast={addToast}
       />
-
       <UserEditModal
         user={editingUser}
         onClose={() => setEditingUser(null)}
@@ -324,22 +433,40 @@ export default function UsersPage() {
         }
         addToast={addToast}
       />
-
       <UserDeleteModal
         user={deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        onDeleted={(userId) =>
-          setUsers((prev) => prev.filter((u) => u.id !== userId))
-        }
+        onDeleted={(userId) => setUsers((prev) => prev.filter((u) => u.id !== userId))}
         addToast={addToast}
       />
-
       <UserSuspendModal
         user={suspendTarget}
         onClose={() => setSuspendTarget(null)}
         onSuspended={(updated) =>
           setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
         }
+        addToast={addToast}
+      />
+
+      {/* ── Modals – Catálogo de Buses ─────────────────────────────────── */}
+      <BusModelCreateModal
+        open={busCreateOpen}
+        onClose={() => setBusCreateOpen(false)}
+        onCreated={(model) => setBusModels((prev) => [...prev, model])}
+        addToast={addToast}
+      />
+      <BusModelEditModal
+        model={editingBusModel}
+        onClose={() => setEditingBusModel(null)}
+        onUpdated={(updated) =>
+          setBusModels((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))
+        }
+        addToast={addToast}
+      />
+      <BusModelDeleteModal
+        model={deleteBusTarget}
+        onClose={() => setDeleteBusTarget(null)}
+        onDeleted={(modelId) => setBusModels((prev) => prev.filter((m) => m.id !== modelId))}
         addToast={addToast}
       />
 

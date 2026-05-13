@@ -1,5 +1,27 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Variables de entorno
+
+Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
+
+```bash
+# URL del backend (ajusta el puerto si tu servidor corre en otro)
+NEXT_PUBLIC_API_URL=http://localhost:8080
+
+# Firebase — obtén la API key en Firebase Console > Configuración del proyecto
+NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key_aqui
+```
+
+> **Importante:** `.env.local` está en `.gitignore` y nunca se sube al repositorio.
+> Cada integrante del equipo debe crear su propio archivo local con los valores correctos.
+> Pídele la API key a quien administre el proyecto de Firebase.
+
+## Dependencias destacadas
+
+| Paquete | Uso |
+|---|---|
+| `framer-motion` | Animaciones del mapa en la pantalla de login (línea del Trolebús, vehículo en movimiento, ping rings) |
+
 ## Getting Started
 
 Primero instala las dependencias:
