@@ -77,9 +77,9 @@ export default function LoginPage() {
           );
           const roleRoutes: Record<string, string> = {
             ADMIN: "/admin",
-            CEO:   "/ceo/dashboard",
-            COO:   "/coo/dashboard",
-            CMO:   "/cmo/dashboard",
+            CEO:   "/ceo/map",
+            COO:   "/coo/map",
+            CMO:   "/cmo/map",
           };
           if (me?.roleName && roleRoutes[me.roleName]) {
             saveRole(me.roleName);
