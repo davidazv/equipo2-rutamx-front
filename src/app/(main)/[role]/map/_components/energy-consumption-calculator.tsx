@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, AlertTriangle, CheckCircle, Repeat } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Users, AlertTriangle, CheckCircle, Repeat, Zap } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -48,11 +48,19 @@ export function EnergyConsumptionCalculator({
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const selectedBus = useMemo(
+    () => busModels.find((b) => String(b.id) === selectedBusModelId) ?? null,
+    [busModels, selectedBusModelId]
+  );
+
   useEffect(() => {
     getBusModels()
       .then((models) => {
         const electricModels = models.filter((m) => m.fuelType === "ELECTRIC");
         setBusModels(electricModels);
+        if (electricModels.length > 0) {
+          setSelectedBusModelId(String(electricModels[0].id));
+        }
       })
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Error cargando modelos")
@@ -121,6 +129,11 @@ export function EnergyConsumptionCalculator({
 
   return (
     <div className="p-4 space-y-4">
+      <h3 className="text-sm font-semibold flex items-center gap-2">
+        <Zap className="h-4 w-4 text-primary" />
+        Simulador de Batería
+      </h3>
+
       {/* Bus model selector */}
       <div>
         <label className="text-xs text-muted-foreground mb-2 block">
@@ -280,6 +293,18 @@ export function EnergyConsumptionCalculator({
           )}
         </div>
       </div>
+
+      {selectedBus && (
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            Bus: {selectedBus.manufacturer} {selectedBus.name}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Capacidad: {selectedBus.batteryCapacityKwh} kWh • Rango:{" "}
+            {selectedBus.autonomyKm} km
+          </p>
+        </div>
+      )}
     </div>
   );
 }
