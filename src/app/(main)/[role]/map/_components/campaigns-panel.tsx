@@ -261,9 +261,23 @@ export function CampaignsPanel({ routes, onSelectionChange }: CampaignsPanelProp
                 {/* Day detail */}
                 {dayStats ? (
                   <>
-                    <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
-                      Detalle por día
+                    <div className="flex items-baseline justify-between mb-1">
+                      <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                        Afluencia por día
+                      </p>
+                    </div>
+                    <p className="text-xs text-text-muted mb-3 leading-relaxed">
+                      Muestra cuántos servicios (<span className="text-foreground font-medium">viajes</span>) opera
+                      esta ruta cada día y los <span className="text-foreground font-medium">pasajeros</span> estimados
+                      que transporta. La barra indica la intensidad relativa respecto al día de mayor demanda.
                     </p>
+                    {/* Column headers */}
+                    <div className="flex items-center gap-2 px-2 mb-1 text-xs text-text-muted">
+                      <span className="w-4 shrink-0" />
+                      <span className="flex-1" />
+                      <span className="w-8 text-right shrink-0">Viajes</span>
+                      <span className="w-14 text-right shrink-0">Pasajeros</span>
+                    </div>
                     <div className="space-y-1">
                       {dayStats.days.map((day) => {
                         const barPct = (day.viajes / dayStats.maxViajes) * 100;
@@ -295,6 +309,11 @@ export function CampaignsPanel({ routes, onSelectionChange }: CampaignsPanelProp
                         );
                       })}
                     </div>
+                    {dayStats.maxViajes > 0 && dayStats.days.every((d) => d.viajes === dayStats.days[0].viajes) && dayStats.days[0].viajes > 0 && (
+                      <p className="text-xs text-text-muted mt-2 italic">
+                        Todos los días tienen el mismo número de viajes — las barras aparecen uniformes.
+                      </p>
+                    )}
 
                     {/* Footer metrics */}
                     <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-border">
@@ -329,10 +348,19 @@ export function CampaignsPanel({ routes, onSelectionChange }: CampaignsPanelProp
             {/* [3] Ranking section */}
             <div className="p-4">
               <p className="text-sm font-semibold mb-1">Ranking de Corredores</p>
-              <p className="text-xs text-text-muted mb-4 leading-relaxed">
-                Ordenado por CO₂ evitado por km de ruta. Las líneas con mayor densidad de
-                emisiones ahorradas son las de mayor prioridad para campañas ambientales.
+              <p className="text-xs text-text-muted mb-3 leading-relaxed">
+                Ordenado por <span className="text-foreground font-medium">score</span> descendente.
+                El score representa el CO₂ evitado por km de ruta al electrificar la línea con el modelo
+                de bus seleccionado — a mayor score, mayor impacto ambiental potencial.
               </p>
+              {/* Column headers */}
+              <div className="flex items-center gap-3 px-3 mb-1 text-xs text-text-muted">
+                <span className="w-5 shrink-0">#</span>
+                <span className="w-2 shrink-0" />
+                <span className="flex-1">Corredor</span>
+                <span className="shrink-0">Score</span>
+                <span className="shrink-0">Prioridad</span>
+              </div>
               <div className="space-y-0.5">
                 {filteredCo2Data.map((item, idx) => {
                   const isActive = item.routeId === selectedRouteId;
