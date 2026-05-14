@@ -54,3 +54,22 @@ export async function getTripsByDay(): Promise<TripsByDayItem[]> {
   if (!res.ok) throw new Error(`getTripsByDay: ${res.status}`);
   return res.json();
 }
+
+export interface TravelTimeItem {
+  routeId: string;
+  agencyId: string;
+  routeShortName: string;
+  routeLongName: string;
+  distanceKm: number;
+  scheduledTimeMinutes: number;
+  estimatedTimeMinutes: number;
+  avgSpeedKmH: number;
+  variabilityPercent: number;
+  frequencyMinutes: number;
+}
+
+export async function getTravelTimes(): Promise<TravelTimeItem[]> {
+  const res = await apiFetch("/api/routes/travel-times");
+  if (!res.ok) throw new Error(`getTravelTimes: ${res.status}`);
+  return res.json();
+}
