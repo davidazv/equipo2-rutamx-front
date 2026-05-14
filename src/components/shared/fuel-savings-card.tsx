@@ -58,7 +58,7 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
   const [selectedRoute, setSelectedRoute] = useState(routes[0]?.routeId ?? "");
   const [selectedModel, setSelectedModel] = useState<number | null>(electricModels[0]?.id ?? null);
   const [buses, setBuses] = useState(10);
-  const [tab, setTab] = useState("mensual");
+  const [tab, setTab] = useState("anual");
   const [data, setData] = useState<FuelSavingsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -203,17 +203,6 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
             <Tabs.Root value={tab} onValueChange={setTab}>
               <Tabs.List className="flex border-b border-border">
                 <Tabs.Trigger
-                  value="mensual"
-                  className={cn(
-                    "px-4 py-2 text-xs font-medium border-b-2 transition-colors",
-                    tab === "mensual"
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Mensual
-                </Tabs.Trigger>
-                <Tabs.Trigger
                   value="anual"
                   className={cn(
                     "px-4 py-2 text-xs font-medium border-b-2 transition-colors",
@@ -234,6 +223,17 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
                   )}
                 >
                   Acumulado
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="mensual"
+                  className={cn(
+                    "px-4 py-2 text-xs font-medium border-b-2 transition-colors",
+                    tab === "mensual"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Mensual
                 </Tabs.Trigger>
               </Tabs.List>
 
