@@ -1,63 +1,69 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { apiFetch } from './client'
 
-export interface BusCountResponse {
-  linea: string;
-  dayType: string;
-  avgDailyDemand: number;
-  peakHourDemand: number;
-  recommendedBuses: number;
-  targetOccupancy: number;
-}
-
-export interface ModelCandidateResponse {
-  id: number;
-  name: string;
-  manufacturer: string;
-  passengerCapacity: number;
-  autonomyKm: number;
-  unitCostUsd: number;
-  recommended: boolean;
-}
-
-export interface ModelRecommendationResponse {
-  linea: string;
-  requiredCapacity: number;
-  models: ModelCandidateResponse[];
-}
+// ── HU12 — Bus model recommendation ──────────────────────────────────────
 
 export type DayType = "weekday" | "saturday" | "sunday";
 
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
+export interface BusModelDetail {
+  id: number;
+  name: string;
+  manufacturer: string;
+  fuelType: string;
+  autonomyKm: number;
+  passengerCapacity: number;
+  unitCostUsd: number;
+  batteryCapacityKwh: number;
+  energyConsumptionKwhKm: number;
+  fuelConsumptionLKm: number;
+  maintenanceCostPerKm: number;
+  co2EmissionsGKm: number;
+}
+
+export interface BusModelRank {
+  rank: number;
+  model: BusModelDetail;
+  meetsCapacity: boolean;
+  meetsAutonomy: boolean;
+  recommended: boolean;
+  requiredCapacity: number;
+  justification: string;
+}
+
+export interface DayRecommendation {
+  peakHourDemand: number;
+  requiredCapacity: number;
+  models: BusModelRank[];
+}
+
+export interface BusModelRecommendation {
+  routeId: string;
+  routeShortName: string;
+  routeLongName: string;
+  distanceKm: number;
+  frequencyMinutes: number;
+  demand: {
+    avgWeekday: number;
+    avgSaturday: number;
+    avgSunday: number;
+  };
+  recommendations: {
+    weekday: DayRecommendation;
+    saturday: DayRecommendation;
+    sunday: DayRecommendation;
+  };
+}
+
+export async function getBusModelRecommendation(
+  routeId: string,
+  targetOccupancy: number,
+): Promise<BusModelRecommendation> {
+  const occ = (targetOccupancy / 100).toFixed(2);
+  const res = await apiFetch(
+    `/api/routes/${encodeURIComponent(routeId)}/bus-model-recommendation?targetOccupancy=${occ}`
+  );
   if (!res.ok) {
     const text = await res.text().catch(() => "Error desconocido");
     throw new Error(text);
   }
   return res.json();
-}
-
-export async function getBusCount(
-  linea: string,
-  dayType?: DayType,
-  occupancy?: number,
-): Promise<BusCountResponse> {
-  const params = new URLSearchParams({ linea });
-  if (dayType) params.set("dayType", dayType);
-  if (occupancy !== undefined) params.set("occupancy", String(occupancy));
-  return apiFetch<BusCountResponse>(`/api/fleet/bus-count?${params}`);
-}
-
-export async function getModelRecommendation(
-  linea: string,
-  dayType?: DayType,
-  occupancy?: number,
-  fleetSize?: number,
-): Promise<ModelRecommendationResponse> {
-  const params = new URLSearchParams({ linea });
-  if (dayType) params.set("dayType", dayType);
-  if (occupancy !== undefined) params.set("occupancy", String(occupancy));
-  if (fleetSize !== undefined) params.set("fleetSize", String(fleetSize));
-  return apiFetch<ModelRecommendationResponse>(
-    `/api/fleet/model-recommendation?${params}`,
-  );
 }

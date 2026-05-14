@@ -68,7 +68,7 @@ export function SidebarContent({
     detailContent =
       activeTab === "fleet" ? (
         <FleetDetail
-          routeShortName={selectedRoute.routeShortName}
+          routeId={selectedRoute.routeId}
           routeDistanceKm={selectedRoute.distanceKm}
         />
       ) : (
