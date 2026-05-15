@@ -28,12 +28,13 @@ const NAV_ITEMS_MAP_FIRST = [
   { key: "/map",       label: "Mapa",    icon: Map },
   { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
   { key: "/fleet",     label: "Flota",   icon: Bus },
+  { key: "/report",    label: "Reporte", icon: FileBarChart },
 ];
 
 const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
   ceo:   new Set(["/dashboard", "/map", "/fleet"]),
   coo:   new Set(["/dashboard", "/map", "/fleet"]),
-  cmo:   new Set(["/dashboard", "/map", "/report"]),
+  cmo:   new Set(["/dashboard", "/map"]),
   admin: new Set(["/dashboard", "/map", "/fleet"]),
 };
 
