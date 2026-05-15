@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Map, Bus, Settings, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Map, Bus, Settings, LogOut, User, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -21,6 +21,7 @@ const NAV_ITEMS_DEFAULT = [
   { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
   { key: "/map",       label: "Mapa",    icon: Map },
   { key: "/fleet",     label: "Flota",   icon: Bus },
+  { key: "/report",    label: "Reporte", icon: FileBarChart },
 ];
 
 const NAV_ITEMS_MAP_FIRST = [
@@ -32,7 +33,7 @@ const NAV_ITEMS_MAP_FIRST = [
 const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
   ceo:   new Set(["/dashboard", "/map", "/fleet"]),
   coo:   new Set(["/dashboard", "/map", "/fleet"]),
-  cmo:   new Set(["/dashboard", "/map"]),
+  cmo:   new Set(["/dashboard", "/map", "/report"]),
   admin: new Set(["/dashboard", "/map", "/fleet"]),
 };
 
