@@ -3,6 +3,7 @@
 import { useCurrentRole } from "@/hooks/use-current-role";
 import RoiDashboardPage from "@/app/dashboard/page";
 import ComparativeReportPage from "@/app/(main)/[role]/report/page";
+import { CooDashboard } from "./_components/coo-dashboard";
 
 export default function DashboardPage() {
   const role = useCurrentRole();
@@ -13,6 +14,10 @@ export default function DashboardPage() {
 
   if (role === "cmo") {
     return <ComparativeReportPage />;
+  }
+
+  if (role === "coo") {
+    return <CooDashboard />;
   }
 
   return (

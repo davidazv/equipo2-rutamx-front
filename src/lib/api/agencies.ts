@@ -11,6 +11,7 @@ export interface AgencyWithColorsResponse {
   agencyColor: string | null;
   sampleRouteColors: string[];
   multiColor: boolean;
+  routeCount: number;
 }
 
 export async function getAgencies(): Promise<AgencyResponse[]> {
