@@ -1,48 +1,57 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { apiFetch } from './client'
 
-// ── Types ──────────────────────────────────────────────────────────────────
+export interface TcoDataPoint {
+  year: number
+  electricTCO: number
+  dieselTCO: number
+}
 
 export interface ComparativeReportResponse {
-  routeId: string;
-  routeDistanceKm: number;
-  numberOfBuses: number;
-  electricModelName: string;
-  electricCostPerYear: number;
-  electricMaintenanceCostPerYear: number;
-  electricTotalCostPerYear: number;
-  electricCo2TonsPerYear: number;
-  dieselModelName: string;
-  dieselCostPerYear: number;
-  dieselMaintenanceCostPerYear: number;
-  dieselTotalCostPerYear: number;
-  dieselCo2TonsPerYear: number;
-  annualSavingsMXN: number;
-  co2AvoidedTonsPerYear: number;
-  savingsPercent: number;
+  routeId: string
+  routeName: string
+  distanceKm: number
+  numberOfBuses: number
+  projectionYears: number
+  electricModelName: string
+  dieselModelName: string
+  electricCostPerYear: number
+  dieselCostPerYear: number
+  electricMaintenancePerYear: number
+  dieselMaintenancePerYear: number
+  co2AvoidedTonsPerYear: number
+  totalInvestmentMXN: number
+  netAnnualSavings: number
+  roiPercent: number
+  paybackYears: number
+  tcoProjection: TcoDataPoint[]
+  paybackYear: number
 }
 
-export type { BusModelResponse, RouteResponse } from "@/lib/api/roi";
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
-  }
-  return res.json();
+export interface ComparativeReportParams {
+  routeId: string
+  electricModelId: number
+  dieselModelId: number
+  buses: number
+  years: number
 }
-
-// ── API functions ──────────────────────────────────────────────────────────
 
 export async function getComparativeReport(
-  routeId: string,
-  electricModelId: number,
-  dieselModelId: number,
-  buses: number
+  params: ComparativeReportParams
 ): Promise<ComparativeReportResponse> {
-  return apiFetch<ComparativeReportResponse>(
-    `/api/reports/comparative?routeId=${encodeURIComponent(routeId)}&electricModelId=${electricModelId}&dieselModelId=${dieselModelId}&buses=${buses}`
-  );
+  const query = new URLSearchParams({
+    routeId: params.routeId,
+    electricModelId: String(params.electricModelId),
+    dieselModelId: String(params.dieselModelId),
+    buses: String(params.buses),
+    years: String(params.years),
+  })
+
+  const res = await apiFetch(`/api/reports/comparative?${query}`)
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Error desconocido')
+    throw new Error(text)
+  }
+
+  return res.json()
 }

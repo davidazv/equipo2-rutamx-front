@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, getRole } from "@/lib/auth";
+import { getToken, getRole, refreshIdToken } from "@/lib/auth";
 
 interface AuthGuardProps {
   requiredRole?: string;
@@ -14,26 +14,38 @@ export function AuthGuard({ requiredRole, children }: AuthGuardProps) {
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    const token = getToken();
-    const role = getRole();
+    async function verify() {
+      let token = getToken();
+      const role = getRole();
 
-    if (!token || !role) {
-      router.replace("/login");
-      return;
+      if (!token) {
+        // idToken missing — try to restore the session via the refresh token
+        token = await refreshIdToken();
+        if (!token) {
+          router.replace("/login");
+          return;
+        }
+      }
+
+      if (!role) {
+        router.replace("/login");
+        return;
+      }
+
+      if (requiredRole && role !== requiredRole) {
+        const redirects: Record<string, string> = {
+          admin: "/admin",
+          ceo: "/ceo/dashboard",
+          coo: "/coo/dashboard",
+          cmo: "/cmo/dashboard",
+        };
+        router.replace(redirects[role] ?? "/login");
+        return;
+      }
+
+      setAllowed(true);
     }
-
-    if (requiredRole && role !== requiredRole) {
-      const redirects: Record<string, string> = {
-        admin: "/admin",
-        ceo: "/ceo/dashboard",
-        coo: "/coo/dashboard",
-        cmo: "/cmo/dashboard",
-      };
-      router.replace(redirects[role] ?? "/login");
-      return;
-    }
-
-    setAllowed(true);
+    verify();
   }, [router, requiredRole]);
 
   if (!allowed) return null;

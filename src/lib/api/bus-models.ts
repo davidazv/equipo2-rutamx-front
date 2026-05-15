@@ -1,12 +1,13 @@
 /**
- * Bus model service — all functions are typed for the real API shape.
- * Currently resolves from in-memory mock data. Replace the body of
- * each function with a real fetch() call when the backend is ready.
+ * Bus model service — HU08 reads from the real API.
+ * Admin CRUD (HU13/14/15) still resolves from in-memory mock data
+ * until those HUs connect to the backend.
  */
 
+import { apiFetch } from './client'
 import {
-  BusModel,
-  FuelType,
+  type BusModel,
+  type FuelType,
   mockBusModels,
   getNextBusModelId,
 } from '@/lib/mock/bus-models'
@@ -16,25 +17,29 @@ export type { BusModel, FuelType }
 export interface CreateBusModelInput {
   name: string
   manufacturer: string
-  fuel_type: FuelType
-  autonomy_km: number
-  passenger_capacity: number
-  unit_cost_usd: number
-  battery_capacity_kwh: number
-  charge_time_hours: number
-  max_speed_kmh: number
+  fuelType: FuelType
+  autonomyKm: number
+  passengerCapacity: number
+  unitCostUsd: number
+  batteryCapacityKwh: number
+  energyConsumptionKwhKm?: number
+  fuelConsumptionLKm?: number
+  maintenanceCostPerKm?: number
+  co2EmissionsGKm?: number
 }
 
 export interface UpdateBusModelInput {
   name?: string
   manufacturer?: string
-  fuel_type?: FuelType
-  autonomy_km?: number
-  passenger_capacity?: number
-  unit_cost_usd?: number
-  battery_capacity_kwh?: number
-  charge_time_hours?: number
-  max_speed_kmh?: number
+  fuelType?: FuelType
+  autonomyKm?: number
+  passengerCapacity?: number
+  unitCostUsd?: number
+  batteryCapacityKwh?: number
+  energyConsumptionKwhKm?: number
+  fuelConsumptionLKm?: number
+  maintenanceCostPerKm?: number
+  co2EmissionsGKm?: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -43,18 +48,21 @@ function delay(ms = 150): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function now(): string {
-  return new Date().toISOString()
-}
-
-// ── Read ───────────────────────────────────────────────────────────────────
+// ── Read (real API) ───────────────────────────────────────────────────────
 
 export async function getBusModels(): Promise<BusModel[]> {
-  await delay()
-  return [...mockBusModels]
+  const res = await apiFetch('/api/bus-models')
+  if (!res.ok) throw new Error(`Failed to fetch bus models: ${res.status}`)
+  return res.json()
 }
 
-// ── HU13 – Create bus model ────────────────────────────────────────────────
+export async function getBusModelById(id: number): Promise<BusModel> {
+  const res = await apiFetch(`/api/bus-models/${id}`)
+  if (!res.ok) throw new Error(`Bus model not found: ${res.status}`)
+  return res.json()
+}
+
+// ── HU13 – Create bus model (mock) ────────────────────────────────────────
 
 export async function createBusModel(
   input: CreateBusModelInput
@@ -70,16 +78,24 @@ export async function createBusModel(
 
   const model: BusModel = {
     id: getNextBusModelId(),
-    ...input,
-    created_at: now(),
-    updated_at: now(),
+    name: input.name,
+    manufacturer: input.manufacturer,
+    fuelType: input.fuelType,
+    autonomyKm: input.autonomyKm,
+    passengerCapacity: input.passengerCapacity,
+    unitCostUsd: input.unitCostUsd,
+    batteryCapacityKwh: input.batteryCapacityKwh,
+    energyConsumptionKwhKm: input.energyConsumptionKwhKm ?? null,
+    fuelConsumptionLKm: input.fuelConsumptionLKm ?? null,
+    maintenanceCostPerKm: input.maintenanceCostPerKm ?? null,
+    co2EmissionsGKm: input.co2EmissionsGKm ?? null,
   }
 
   mockBusModels.push(model)
   return { ...model }
 }
 
-// ── HU14 – Update bus model ────────────────────────────────────────────────
+// ── HU14 – Update bus model (mock) ────────────────────────────────────────
 
 export async function updateBusModel(
   id: number,
@@ -103,14 +119,13 @@ export async function updateBusModel(
   const updated: BusModel = {
     ...mockBusModels[idx],
     ...input,
-    updated_at: now(),
   }
 
   mockBusModels[idx] = updated
   return { ...updated }
 }
 
-// ── HU15 – Delete bus model ────────────────────────────────────────────────
+// ── HU15 – Delete bus model (mock) ────────────────────────────────────────
 
 export async function deleteBusModel(id: number): Promise<void> {
   await delay()

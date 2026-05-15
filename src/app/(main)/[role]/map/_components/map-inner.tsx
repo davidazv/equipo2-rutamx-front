@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import Map, { Source, Layer, NavigationControl } from "react-map-gl/mapbox";
+import { useState, useCallback, useRef, useEffect } from "react";
+import Map, { Source, Layer, NavigationControl, type MapRef } from "react-map-gl/mapbox";
 import type { ViewState } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MEXICO_CITY_CENTER, DEFAULT_ZOOM } from "@/constants/map";
@@ -18,6 +18,9 @@ interface MapInnerProps {
   getRouteColor: (route: RouteWithShapes, index: number) => string;
   visibleAgencyIds: string[];
   agencies: AgencyWithColorsResponse[];
+  targetBounds?: [[number, number], [number, number]] | null;
+  unselectedOpacity?: number;
+  unselectedLineWidth?: number;
 }
 
 export function MapInner({
@@ -27,6 +30,9 @@ export function MapInner({
   getRouteColor,
   visibleAgencyIds,
   agencies,
+  targetBounds,
+  unselectedOpacity = 0.08,
+  unselectedLineWidth = 3,
 }: MapInnerProps) {
   const [viewState, setViewState] = useState<Partial<ViewState>>({
     longitude: MEXICO_CITY_CENTER[0],
@@ -36,6 +42,13 @@ export function MapInner({
     bearing: 0,
   });
 
+  const mapRef = useRef<MapRef>(null);
+
+  useEffect(() => {
+    if (!targetBounds || !mapRef.current) return;
+    mapRef.current.fitBounds(targetBounds, { padding: 80, duration: 1200 });
+  }, [targetBounds]);
+
   const handleMove = useCallback((evt: { viewState: ViewState }) => {
     setViewState(evt.viewState);
   }, []);
@@ -44,6 +57,7 @@ export function MapInner({
     <div className="relative w-full h-full">
       <MapLegend visibleAgencyIds={visibleAgencyIds} agencies={agencies} />
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={handleMove}
         mapStyle="mapbox://styles/mapbox/dark-v11"
@@ -61,10 +75,12 @@ export function MapInner({
           route.coordinates.length >= 3
             ? createSmoothCurve(route.coordinates)
             : route.coordinates;
+        const normalizedBase = baseColor.startsWith("#") ? baseColor : `#${baseColor}`;
         const displayColor = selectedRouteId
-          ? baseColor
-          : varyColor(baseColor, route.routeId);
-        const opacity = selectedRouteId ? 0.08 : 0.8;
+          ? normalizedBase
+          : varyColor(normalizedBase, route.routeId);
+        const opacity = selectedRouteId ? unselectedOpacity : 0.8;
+        const lineWidth = selectedRouteId ? unselectedLineWidth : 3;
 
         return (
           <Source
@@ -85,7 +101,7 @@ export function MapInner({
               type="line"
               paint={{
                 "line-color": displayColor,
-                "line-width": 8,
+                "line-width": lineWidth * 2.5,
                 "line-opacity": opacity * 0.4,
                 "line-blur": 3,
               }}
@@ -99,7 +115,7 @@ export function MapInner({
               type="line"
               paint={{
                 "line-color": displayColor,
-                "line-width": 3,
+                "line-width": lineWidth,
                 "line-opacity": opacity,
               }}
               layout={{

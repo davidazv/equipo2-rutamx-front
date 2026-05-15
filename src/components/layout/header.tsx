@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Map, Bus, Settings, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Map, Bus, Settings, LogOut, User, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -17,18 +17,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCurrentRole, type DashboardRole } from "@/hooks/use-current-role";
 
-const NAV_ITEMS = [
+const NAV_ITEMS_DEFAULT = [
   { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
   { key: "/map",       label: "Mapa",    icon: Map },
+  { key: "/fleet",     label: "Flota",   icon: Bus },
+  { key: "/report",    label: "Reporte", icon: FileBarChart },
+];
+
+const NAV_ITEMS_MAP_FIRST = [
+  { key: "/map",       label: "Mapa",    icon: Map },
+  { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
   { key: "/fleet",     label: "Flota",   icon: Bus },
 ];
 
 const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
   ceo:   new Set(["/dashboard", "/map", "/fleet"]),
   coo:   new Set(["/dashboard", "/map", "/fleet"]),
-  cmo:   new Set(["/dashboard", "/map"]),
+  cmo:   new Set(["/dashboard", "/map", "/report"]),
   admin: new Set(["/dashboard", "/map", "/fleet"]),
 };
+
+const MAP_FIRST_ROLES = new Set<DashboardRole>(["cmo", "coo", "ceo"]);
 
 export function Header() {
   const pathname = usePathname();
@@ -41,12 +50,13 @@ export function Header() {
   }
 
   const allowedKeys = NAV_ALLOWED_BY_ROLE[role];
-  const navItems = NAV_ITEMS.filter((item) => allowedKeys.has(item.key));
+  const baseItems = MAP_FIRST_ROLES.has(role) ? NAV_ITEMS_MAP_FIRST : NAV_ITEMS_DEFAULT;
+  const navItems = baseItems.filter((item) => allowedKeys.has(item.key));
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80">
       <div className="flex h-16 items-center px-6">
-        <Link href={`/${role}/dashboard`} className="flex items-center mr-8">
+        <Link href={MAP_FIRST_ROLES.has(role) ? `/${role}/map` : `/${role}/dashboard`} className="flex items-center mr-8">
           <span className="text-xl font-bold text-foreground">
             Ruta<span className="text-primary-light">MX</span>
           </span>

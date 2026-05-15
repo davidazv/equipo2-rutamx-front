@@ -79,6 +79,25 @@ export async function getRoutesWithShapes(
   return apiFetch<RouteWithShapes[]>(`/api/routes/shapes${params}`);
 }
 
+// ── HU19: Route travel time comparison ────────────────────────────────────
+
+export interface RouteTimeComparison {
+  routeId: string;
+  agencyId: string;
+  routeShortName: string;
+  routeLongName: string;
+  distanceKm: number;
+  scheduledTimeMinutes: number;
+  estimatedTimeMinutes: number;
+  avgSpeedKmH: number;
+  variabilityPercent: number;
+  frequencyMinutes: number;
+}
+
+export async function getRouteTravelTimes(): Promise<RouteTimeComparison[]> {
+  return apiFetch<RouteTimeComparison[]>("/api/routes/travel-times");
+}
+
 export async function calculateEnergyConsumption(
   routeId: string,
   busModelId: number,
