@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { FileDown, BarChart2, TrendingUp, Leaf, DollarSign, Lock } from "lucide-react";
+import { FileDown, BarChart2, TrendingUp, Leaf, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -22,8 +22,6 @@ import {
   getComparativeReport,
   type ComparativeReportResponse,
 } from "@/lib/api/comparative";
-import { useCurrentRole } from "@/hooks/use-current-role";
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtMXN(value: number): string {
@@ -42,7 +40,6 @@ function fmtNum(value: number, decimals = 1): string {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComparativeReportPage() {
-  const role = useCurrentRole();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [routes, setRoutes] = useState<RouteResponse[]>([]);
@@ -117,22 +114,6 @@ export default function ComparativeReportPage() {
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
     pdf.save(`reporte-comparativo-${report.routeId}.pdf`);
-  }
-
-  // ── Acceso restringido ────────────────────────────────────────────────────
-
-  if (role !== "cmo") {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-light border border-border">
-          <Lock className="h-5 w-5 text-text-muted" />
-        </div>
-        <p className="text-sm font-medium">Acceso restringido</p>
-        <p className="text-xs text-text-muted">
-          El reporte comparativo es exclusivo del rol CMO.
-        </p>
-      </div>
-    );
   }
 
   // ── Catálogo cargando ────────────────────────────────────────────────────

@@ -2,12 +2,17 @@
 
 import { useCurrentRole } from "@/hooks/use-current-role";
 import RoiDashboardPage from "@/app/dashboard/page";
+import ComparativeReportPage from "@/app/(main)/[role]/report/page";
 
 export default function DashboardPage() {
   const role = useCurrentRole();
 
   if (role === "ceo" || role === "admin") {
     return <RoiDashboardPage />;
+  }
+
+  if (role === "cmo") {
+    return <ComparativeReportPage />;
   }
 
   return (
