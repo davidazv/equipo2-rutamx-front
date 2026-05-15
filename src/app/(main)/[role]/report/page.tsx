@@ -18,6 +18,7 @@ import {
   type BusModelResponse as BusModel,
   type RouteResponse,
 } from "@/lib/api/roi";
+import { getAgenciesWithColors, type AgencyWithColorsResponse } from "@/lib/api/agencies";
 import {
   getComparativeReport,
   type ComparativeReportResponse,
@@ -44,6 +45,8 @@ export default function ComparativeReportPage() {
 
   const [routes, setRoutes] = useState<RouteResponse[]>([]);
   const [busModels, setBusModels] = useState<BusModel[]>([]);
+  const [agencies, setAgencies] = useState<AgencyWithColorsResponse[]>([]);
+  const [selectedAgency, setSelectedAgency] = useState<string>("");
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
@@ -58,14 +61,21 @@ export default function ComparativeReportPage() {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getRoutes(), getBusModels()])
-      .then(([r, b]) => {
+    Promise.all([getRoutes(), getBusModels(), getAgenciesWithColors()])
+      .then(([r, b, a]) => {
         setRoutes(r);
         setBusModels(b);
+        setAgencies(a);
+        if (a.length > 0) setSelectedAgency(a[0].agencyId);
       })
       .catch(() => setCatalogError("No se pudieron cargar rutas o modelos de bus."))
       .finally(() => setLoadingCatalog(false));
   }, []);
+
+  const filteredRoutes = useMemo(
+    () => routes.filter((r) => r.agencyId === selectedAgency),
+    [routes, selectedAgency]
+  );
 
   const electricModels = useMemo(
     () => busModels.filter((m) => m.fuelType === "ELECTRIC"),
@@ -208,6 +218,29 @@ export default function ComparativeReportPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Medio de transporte */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-text-secondary">Medio de transporte</label>
+              <Select
+                value={selectedAgency}
+                onValueChange={(v) => {
+                  setSelectedAgency(v);
+                  setRouteId("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar agencia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agencies.map((a) => (
+                    <SelectItem key={a.agencyId} value={a.agencyId}>
+                      {a.agencyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Ruta */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-secondary">Ruta</label>
@@ -216,7 +249,7 @@ export default function ComparativeReportPage() {
                   <SelectValue placeholder="Seleccionar ruta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {routes.map((r) => (
+                  {filteredRoutes.map((r) => (
                     <SelectItem key={r.routeId} value={r.routeId}>
                       {r.routeShortName} — {r.routeLongName}
                     </SelectItem>
