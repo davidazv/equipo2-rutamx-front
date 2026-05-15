@@ -102,9 +102,7 @@ export default function ComparativeReportPage() {
 
   async function handleDownloadPdf() {
     if (!reportRef.current || !report) return;
-    // @ts-expect-error — jsPDF and html2canvas lack bundled type declarations in this setup
     const { default: JsPDF } = await import("jspdf");
-    // @ts-expect-error
     const { default: html2canvas } = await import("html2canvas");
     const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
