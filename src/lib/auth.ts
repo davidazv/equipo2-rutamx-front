@@ -1,8 +1,16 @@
-const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
-if (!FIREBASE_API_KEY) throw new Error('NEXT_PUBLIC_FIREBASE_API_KEY no está configurada')
+function getFirebaseApiKey(): string {
+  const key = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
+  if (!key) throw new Error('NEXT_PUBLIC_FIREBASE_API_KEY no está configurada')
+  return key
+}
 
-const FIREBASE_SIGN_IN_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`
-const FIREBASE_REFRESH_URL = `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`
+function getSignInUrl(): string {
+  return `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${getFirebaseApiKey()}`
+}
+
+function getRefreshUrl(): string {
+  return `https://securetoken.googleapis.com/v1/token?key=${getFirebaseApiKey()}`
+}
 
 export const TOKEN_KEY = 'rutamx_id_token'
 export const REFRESH_TOKEN_KEY = 'rutamx_refresh_token'
@@ -23,7 +31,7 @@ interface FirebaseRefreshResponse {
 }
 
 export async function signIn(email: string, password: string): Promise<string> {
-  const res = await fetch(FIREBASE_SIGN_IN_URL, {
+  const res = await fetch(getSignInUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, returnSecureToken: true }),
@@ -51,7 +59,7 @@ export async function refreshIdToken(): Promise<string | null> {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
   if (!refreshToken) return null
 
-  const res = await fetch(FIREBASE_REFRESH_URL, {
+  const res = await fetch(getRefreshUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
