@@ -24,7 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { getUsers, reinstateUser } from '@/lib/api/users'
+import { getUsers, reinstateUser, exportUsersCsv } from '@/lib/api/users'
 import type { User, Role, UserStatus } from '@/lib/api/users'
 
 import { UserCreateForm } from './UserCreateForm'
@@ -147,6 +147,21 @@ export default function UsersTab() {
     }
   }
 
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExportCsv() {
+    setExporting(true)
+    try {
+      await exportUsersCsv()
+      addToast('Lista de usuarios exportada correctamente.')
+    } catch (err) {
+      console.error('[HU25] exportUsersCsv error:', err)
+      addToast('Ocurrió un error al exportar el CSV.', 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <>
       {/* Toolbar */}
@@ -161,9 +176,15 @@ export default function UsersTab() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="default" className="gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            className="gap-2"
+            onClick={handleExportCsv}
+            disabled={exporting}
+          >
             <Download className="h-4 w-4" />
-            Exportar CSV
+            {exporting ? 'Exportando...' : 'Exportar CSV'}
           </Button>
           <Button onClick={() => setCreateOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
