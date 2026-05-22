@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select'
 import { createUser } from '@/lib/api/users'
 import type { User, Role } from '@/lib/api/users'
+import { PasswordRequirements, passwordMeetsRequirements } from '@/components/ui/password-requirements'
 
 interface UserFormData {
   fullName: string
@@ -226,6 +227,7 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
                   )}
                 </button>
               </div>
+              <PasswordRequirements password={form.password} />
               {formErrors.password && (
                 <p className="text-xs text-danger">{formErrors.password}</p>
               )}
@@ -279,7 +281,7 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting || !passwordMeetsRequirements(form.password)}>
             Crear Usuario
           </Button>
         </DialogFooter>

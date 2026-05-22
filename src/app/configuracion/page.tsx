@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getUser, saveUser, getToken, changePassword } from "@/lib/auth";
 import type { CurrentUser } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
+import { PasswordRequirements, passwordMeetsRequirements } from "@/components/ui/password-requirements";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -163,7 +164,7 @@ export default function ConfiguracionPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Cambiar contraseña</CardTitle>
-            <CardDescription>Elige una contraseña de al menos 6 caracteres.</CardDescription>
+            <CardDescription>Elige una contraseña segura que cumpla todos los requisitos.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordSave} className="space-y-4">
@@ -179,6 +180,7 @@ export default function ConfiguracionPage() {
                   required
                   disabled={passLoading}
                 />
+                <PasswordRequirements password={newPassword} />
               </div>
 
               <div className="space-y-1.5">
@@ -202,7 +204,7 @@ export default function ConfiguracionPage() {
               )}
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={passLoading}>
+                <Button type="submit" disabled={passLoading || !passwordMeetsRequirements(newPassword)}>
                   {passLoading ? "Cambiando..." : "Cambiar contraseña"}
                 </Button>
               </div>
