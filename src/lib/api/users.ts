@@ -136,3 +136,26 @@ export async function reinstateUser(id: number): Promise<User> {
   const raw: RawUser = await res.json()
   return normalize(raw)
 }
+
+// ── HU25 – Export users CSV ────────────────────────────────────────────────
+
+export async function exportUsersCsv(): Promise<void> {
+  const res = await apiFetch('/admin/users/export')
+  console.log('[HU25] export status:', res.status, 'headers:', [...res.headers.entries()])
+  if (!res.ok) throw new Error(`EXPORT_FAILED:${res.status}`)
+
+  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const match = disposition.match(/filename="?([^"]+)"?/)
+  const today = new Date().toISOString().slice(0, 10)
+  const filename = match ? match[1] : `usuarios_${today}.csv`
+
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}

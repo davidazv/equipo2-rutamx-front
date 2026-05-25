@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Map, Bus, Settings, LogOut, User, FileBarChart } from "lucide-react";
+import { LayoutDashboard, Map, Bus, Settings, LogOut, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCurrentRole, type DashboardRole } from "@/hooks/use-current-role";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const NAV_ITEMS_DEFAULT = [
   { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
@@ -28,12 +29,13 @@ const NAV_ITEMS_MAP_FIRST = [
   { key: "/map",       label: "Mapa",    icon: Map },
   { key: "/dashboard", label: "Tablero", icon: LayoutDashboard },
   { key: "/fleet",     label: "Flota",   icon: Bus },
+  { key: "/report",    label: "Reporte", icon: FileBarChart },
 ];
 
 const NAV_ALLOWED_BY_ROLE: Record<DashboardRole, ReadonlySet<string>> = {
   ceo:   new Set(["/dashboard", "/map", "/fleet"]),
   coo:   new Set(["/dashboard", "/map", "/fleet"]),
-  cmo:   new Set(["/dashboard", "/map", "/report"]),
+  cmo:   new Set(["/dashboard", "/map"]),
   admin: new Set(["/dashboard", "/map", "/fleet"]),
 };
 
@@ -43,6 +45,7 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const role = useCurrentRole();
+  const user = useCurrentUser();
 
   function handleSignOut() {
     signOut();
@@ -91,27 +94,29 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button className="relative h-10 w-10 rounded-full" variant="ghost">
                 <Avatar>
-                  <AvatarImage alt="Usuario" src="" />
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarImage alt={user?.firstName ?? "Usuario"} src="" />
+                  <AvatarFallback>
+                    {user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : "U"}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 bg-background/50 backdrop-blur-md">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="font-medium text-sm leading-none">Usuario</p>
-                  <p className="text-muted-foreground text-xs leading-none">usuario@rutamx.com</p>
+                  <p className="font-medium text-sm leading-none">
+                    {user ? `${user.firstName} ${user.lastName}` : "Usuario"}
+                  </p>
+                  <p className="text-muted-foreground text-xs leading-none">
+                    {user?.email ?? ""}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User />
-                Perfil
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/configuracion">
                   <Settings />
-                  Configuracion
+                  Perfil y configuración
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

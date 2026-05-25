@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { FileDown, BarChart2, TrendingUp, Leaf, DollarSign, Lock } from "lucide-react";
+import { FileDown, BarChart2, TrendingUp, Leaf, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -18,12 +18,11 @@ import {
   type BusModelResponse as BusModel,
   type RouteResponse,
 } from "@/lib/api/roi";
+import { getAgenciesWithColors, type AgencyWithColorsResponse } from "@/lib/api/agencies";
 import {
   getComparativeReport,
   type ComparativeReportResponse,
 } from "@/lib/api/comparative";
-import { useCurrentRole } from "@/hooks/use-current-role";
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtMXN(value: number): string {
@@ -42,11 +41,12 @@ function fmtNum(value: number, decimals = 1): string {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComparativeReportPage() {
-  const role = useCurrentRole();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [routes, setRoutes] = useState<RouteResponse[]>([]);
   const [busModels, setBusModels] = useState<BusModel[]>([]);
+  const [agencies, setAgencies] = useState<AgencyWithColorsResponse[]>([]);
+  const [selectedAgency, setSelectedAgency] = useState<string>("");
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
@@ -61,14 +61,21 @@ export default function ComparativeReportPage() {
   const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getRoutes(), getBusModels()])
-      .then(([r, b]) => {
+    Promise.all([getRoutes(), getBusModels(), getAgenciesWithColors()])
+      .then(([r, b, a]) => {
         setRoutes(r);
         setBusModels(b);
+        setAgencies(a);
+        if (a.length > 0) setSelectedAgency(a[0].agencyId);
       })
       .catch(() => setCatalogError("No se pudieron cargar rutas o modelos de bus."))
       .finally(() => setLoadingCatalog(false));
   }, []);
+
+  const filteredRoutes = useMemo(
+    () => routes.filter((r) => r.agencyId === selectedAgency),
+    [routes, selectedAgency]
+  );
 
   const electricModels = useMemo(
     () => busModels.filter((m) => m.fuelType === "ELECTRIC"),
@@ -115,22 +122,6 @@ export default function ComparativeReportPage() {
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
     pdf.save(`reporte-comparativo-${report.routeId}.pdf`);
-  }
-
-  // ── Acceso restringido ────────────────────────────────────────────────────
-
-  if (role !== "cmo") {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-light border border-border">
-          <Lock className="h-5 w-5 text-text-muted" />
-        </div>
-        <p className="text-sm font-medium">Acceso restringido</p>
-        <p className="text-xs text-text-muted">
-          El reporte comparativo es exclusivo del rol CMO.
-        </p>
-      </div>
-    );
   }
 
   // ── Catálogo cargando ────────────────────────────────────────────────────
@@ -227,6 +218,29 @@ export default function ComparativeReportPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Medio de transporte */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-text-secondary">Medio de transporte</label>
+              <Select
+                value={selectedAgency}
+                onValueChange={(v) => {
+                  setSelectedAgency(v);
+                  setRouteId("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar agencia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agencies.map((a) => (
+                    <SelectItem key={a.agencyId} value={a.agencyId}>
+                      {a.agencyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Ruta */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-secondary">Ruta</label>
@@ -235,7 +249,7 @@ export default function ComparativeReportPage() {
                   <SelectValue placeholder="Seleccionar ruta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {routes.map((r) => (
+                  {filteredRoutes.map((r) => (
                     <SelectItem key={r.routeId} value={r.routeId}>
                       {r.routeShortName} — {r.routeLongName}
                     </SelectItem>

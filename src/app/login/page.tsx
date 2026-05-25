@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { signIn, getToken, saveRole } from "@/lib/auth";
+import { signIn, getToken, saveRole, saveUser } from "@/lib/auth";
 
 /* ── Station data ── */
 type Station = {
@@ -71,7 +71,7 @@ export default function LoginPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const users: Array<{ email: string; roleName: string }> = await res.json();
+          const users: Array<{ id: number; email: string; roleName: string; firstName: string; lastName: string }> = await res.json();
           const me = users.find(
             (u) => u.email.toLowerCase() === currentEmail?.toLowerCase()
           );
@@ -83,6 +83,7 @@ export default function LoginPage() {
           };
           if (me?.roleName && roleRoutes[me.roleName]) {
             saveRole(me.roleName);
+            saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email });
             destination = roleRoutes[me.roleName];
           }
         }

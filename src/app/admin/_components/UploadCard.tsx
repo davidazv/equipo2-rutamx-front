@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ interface UploadCardProps {
   uploadedAt: string | null;
   onUploaded: (tableName: string, rowCount: number) => void;
   accept?: string;
+  sourceUrl?: string;
 }
 
 function formatDate(iso: string): string {
@@ -39,6 +41,7 @@ export default function UploadCard({
   uploadedAt,
   onUploaded,
   accept = ".csv,.txt",
+  sourceUrl,
 }: UploadCardProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CsvImportResult | null>(null);
@@ -82,11 +85,24 @@ export default function UploadCard({
               <AlertCircle className="h-4 w-4 text-yellow-500" />
             )}
           </CardTitle>
-          {uploadedAt && (
-            <span className="text-xs text-muted-foreground">
-              {formatDate(uploadedAt)}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {uploadedAt && (
+              <span className="text-xs text-muted-foreground">
+                {formatDate(uploadedAt)}
+              </span>
+            )}
+            {sourceUrl && (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary-light transition-colors"
+                title="Abrir fuente de datos"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

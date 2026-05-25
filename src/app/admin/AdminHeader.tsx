@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, LogOut, User, Settings } from "lucide-react";
+import { Shield, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import {
 
 export default function AdminHeader() {
   const router = useRouter();
+  const user = useCurrentUser();
 
   function handleSignOut() {
     signOut();
@@ -43,8 +45,10 @@ export default function AdminHeader() {
                 variant="ghost"
               >
                 <Avatar>
-                  <AvatarImage alt="Usuario" src="" />
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarImage alt={user?.firstName ?? "Usuario"} src="" />
+                  <AvatarFallback>
+                    {user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : "U"}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -54,21 +58,19 @@ export default function AdminHeader() {
             >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="font-medium text-sm leading-none">Usuario</p>
+                  <p className="font-medium text-sm leading-none">
+                    {user ? `${user.firstName} ${user.lastName}` : "Usuario"}
+                  </p>
                   <p className="text-muted-foreground text-xs leading-none">
-                    usuario@rutamx.com
+                    {user?.email ?? ""}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User />
-                Perfil
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/configuracion">
                   <Settings />
-                  Configuracion
+                  Perfil y configuración
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
