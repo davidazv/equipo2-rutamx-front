@@ -19,7 +19,7 @@ const TIER_0 = [
   { tableName: "stops",      displayName: "Paradas",             sourceUrl: GTFS },
   { tableName: "bus-models", displayName: "Modelos de Bus",      sourceUrl: "https://www.yutong.mx/products/ZK5120C.shtml" },
   { tableName: "shapes",     displayName: "Formas de Ruta",      sourceUrl: GTFS },
-  { tableName: "afluencia",  displayName: "Afluencia Metrobús",  sourceUrl: "https://datos.cdmx.gob.mx/dataset/afluencia-diaria-de-metrobus-cdmx" },
+  { tableName: "afluencia",  displayName: "Afluencia Metrobús (desglosado por mes)",  sourceUrl: "https://datos.cdmx.gob.mx/dataset/afluencia-diaria-de-metrobus-cdmx" },
 ];
 
 const TIER_1 = [{ tableName: "routes",      displayName: "Rutas",               sourceUrl: GTFS }];
