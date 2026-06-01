@@ -98,11 +98,9 @@ export function buildCSVContent(data: FuelSavingsResponse, tab: string): string 
 }
 
 export function formatMXN(v: number): string {
-  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
   return `$${Math.round(v).toLocaleString("es-MX")}`;
 }
 
 export function formatLiters(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M L`;
   return `${Math.round(v).toLocaleString("es-MX")} L`;
 }

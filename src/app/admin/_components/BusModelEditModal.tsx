@@ -42,7 +42,7 @@ const FUEL_TYPE_LABELS: Record<FuelType, string> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function parsePositiveFloat(value: string): number | null {
-  const n = parseFloat(value)
+  const n = parseFloat(value.replace(/,/g, ''))
   return isNaN(n) || n <= 0 ? null : n
 }
 
@@ -58,7 +58,7 @@ function modelToForm(model: BusModel): BusModelFormData {
     fuelType: model.fuelType,
     autonomyKm: String(model.autonomyKm),
     passengerCapacity: String(model.passengerCapacity),
-    unitCostUsd: String(model.unitCostUsd),
+    unitCostUsd: model.unitCostUsd.toLocaleString('es-MX'),
     batteryCapacityKwh: String(model.batteryCapacityKwh ?? 0),
   }
 }
@@ -148,7 +148,7 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
     }
   }
 
-  // ── Field helper ───────────────────────────────────────────────────────
+  // ── Field helpers ──────────────────────────────────────────────────────
 
   function field(key: keyof BusModelFormData) {
     return {
@@ -156,6 +156,18 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((f) => ({ ...f, [key]: e.target.value }))
         setFormErrors((fe) => ({ ...fe, [key]: undefined }))
+      },
+    }
+  }
+
+  function costField() {
+    return {
+      value: form.unitCostUsd,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        const digits = e.target.value.replace(/[^0-9]/g, '')
+        const formatted = digits ? parseInt(digits, 10).toLocaleString('es-MX') : ''
+        setForm((f) => ({ ...f, unitCostUsd: formatted }))
+        setFormErrors((fe) => ({ ...fe, unitCostUsd: undefined }))
       },
     }
   }
@@ -234,7 +246,7 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
             <p className="text-sm font-medium text-foreground">Costos</p>
             <div className="flex flex-col gap-1">
               <label className="text-sm text-text-secondary">Costo unitario (USD)</label>
-              <Input type="number" min="1" step="1000" placeholder="ej. 420000" {...field('unitCostUsd')} />
+              <Input inputMode="numeric" placeholder="ej. 420,000" {...costField()} />
               {formErrors.unitCostUsd && <p className="text-xs text-danger">{formErrors.unitCostUsd}</p>}
             </div>
           </section>
