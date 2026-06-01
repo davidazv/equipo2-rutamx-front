@@ -26,8 +26,6 @@ import {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtMXN(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M MXN`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K MXN`;
   return `$${value.toLocaleString("es-MX")} MXN`;
 }
 

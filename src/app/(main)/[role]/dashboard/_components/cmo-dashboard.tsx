@@ -9,14 +9,9 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRouteStats, type RouteStatsResponse } from "@/lib/api/cmo";
 import { getAgenciesWithColors, type AgencyWithColorsResponse } from "@/lib/api/agencies";
+import { formatNumber } from "@/lib/utils";
 
 const MAX_CHART_ROUTES = 20;
-
-function formatPassengers(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toFixed(0);
-}
 
 export function CmoDashboard() {
   const [routes, setRoutes] = useState<RouteStatsResponse[]>([]);
@@ -203,7 +198,7 @@ export function CmoDashboard() {
                       <div>
                         <p className="text-text-muted">Pasajeros/día</p>
                         <p className="font-semibold">
-                          {formatPassengers(route.avgDailyPassengers)}
+                          {formatNumber(route.avgDailyPassengers)}
                         </p>
                       </div>
                     </div>

@@ -170,7 +170,7 @@ export function FleetDetail({
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-[10px] text-muted-foreground">
-                    ${(rank.model.unitCostUsd / 1000).toFixed(0)}k USD
+                    ${formatNumber(rank.model.unitCostUsd)} USD
                   </p>
                   {rank.recommended && (
                     <Badge className="text-[9px] px-1 py-0 leading-tight mt-0.5">
@@ -203,8 +203,7 @@ export function FleetDetail({
               Costo total flota ({recommendedBuses} buses)
             </span>
             <span className="text-sm font-bold text-primary">
-              ${((recommended.model.unitCostUsd * recommendedBuses) / 1_000_000).toFixed(1)}M
-              USD
+              ${formatNumber(recommended.model.unitCostUsd * recommendedBuses)} USD
             </span>
           </div>
         </div>
