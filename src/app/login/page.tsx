@@ -83,7 +83,7 @@ export default function LoginPage() {
           };
           if (me?.roleName && roleRoutes[me.roleName]) {
             saveRole(me.roleName);
-            saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email });
+            saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email.toLowerCase() });
             destination = roleRoutes[me.roleName];
           }
         }

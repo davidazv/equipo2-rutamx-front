@@ -102,7 +102,7 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
       const user = await createUser({
         firstName,
         lastName,
-        email: form.email,
+        email: form.email.trim().toLowerCase(),
         role: form.role,
         password: form.password,
       })
