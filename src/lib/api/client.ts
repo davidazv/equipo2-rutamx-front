@@ -23,7 +23,7 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
     // Refresh failed — return the 401 so the component shows its error state.
     // Do NOT call signOut() or redirect here; the user stays on the page and
     // can sign out manually. AuthGuard handles session validation on navigation.
-    console.warn(`apiFetch: 401 on ${path}, token refresh failed or unavailable`)
+    console.warn('apiFetch: 401, token refresh failed or unavailable')
   }
 
   return res
