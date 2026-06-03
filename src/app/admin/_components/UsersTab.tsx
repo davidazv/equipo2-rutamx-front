@@ -9,6 +9,7 @@ import {
   Ban,
   CheckCircle2,
   Trash2,
+  KeyRound,
   X,
 } from 'lucide-react'
 
@@ -31,6 +32,7 @@ import { UserCreateForm } from './UserCreateForm'
 import { UserEditModal } from './UserEditModal'
 import { UserDeleteModal } from './UserDeleteModal'
 import { UserSuspendModal } from './UserSuspendModal'
+import { UserResetPasswordModal } from './UserResetPasswordModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -111,6 +113,7 @@ export default function UsersTab() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null)
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<User | null>(null)
 
   useEffect(() => {
     getUsers().then(setUsers)
@@ -245,6 +248,16 @@ export default function UsersTab() {
                       <Pencil className="h-4 w-4" />
                     </Button>
 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setResetPasswordTarget(user)}
+                      title="Restablecer contraseña"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <KeyRound className="h-4 w-4" />
+                    </Button>
+
                     {user.status === 'ACTIVE' ? (
                       <Button
                         variant="ghost"
@@ -316,6 +329,12 @@ export default function UsersTab() {
         onSuspended={(updated) =>
           setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
         }
+        addToast={addToast}
+      />
+
+      <UserResetPasswordModal
+        user={resetPasswordTarget}
+        onClose={() => setResetPasswordTarget(null)}
         addToast={addToast}
       />
 

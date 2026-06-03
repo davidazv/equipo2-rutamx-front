@@ -137,6 +137,17 @@ export async function reinstateUser(id: number): Promise<User> {
   return normalize(raw)
 }
 
+// ── Reset password (admin) ─────────────────────────────────────────────────
+
+export async function resetUserPassword(id: number, newPassword: string): Promise<void> {
+  const res = await apiFetch(`/admin/users/${id}/reset-password`, {
+    method: 'PATCH',
+    body: JSON.stringify({ newPassword }),
+  })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('RESET_FAILED')
+}
+
 // ── HU25 – Export users CSV ────────────────────────────────────────────────
 
 export async function exportUsersCsv(): Promise<void> {
