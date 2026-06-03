@@ -11,18 +11,48 @@ import { ChevronLeft, ChevronRight, Zap, Fuel } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { BusModel } from "@/lib/api/bus-models";
 import { formatNumber } from "@/lib/utils";
+import { BusPlaceholder } from "@/components/fleet/bus-placeholder";
 
-const GLB_FILES = [
-  "/primer-modelo.glb",
-  "/BYD_K7.glb",
-  "/BYD_K9.glb",
-  "/New_Flyer_Xcelsior_XE40.glb",
-  "/Proterra_ZX5.glb",
-  "/Volvo_7900_electric.glb",
+// ── GLB ↔ modelo (por nombre conocido) ──────────────────────────────────────
+//
+// Solo los modelos "default" tienen un archivo .glb en /public. Cada entrada
+// lista las variantes de `manufacturer name` (normalizadas) que mapean a su GLB.
+// Cualquier modelo que NO coincida (p. ej. uno recién dado de alta en el CRUD)
+// devuelve `null` y el carrusel muestra el placeholder SVG en su lugar.
+
+interface GlbEntry {
+  glb: string;
+  match: string[];
+}
+
+const GLB_ENTRIES: GlbEntry[] = [
+  { glb: "/BYD_K7.glb", match: ["byd k7"] },
+  { glb: "/BYD_K9.glb", match: ["byd k9"] },
+  { glb: "/New_Flyer_Xcelsior_XE40.glb", match: ["new flyer xcelsior xe40", "newflyer xcelsior xe40"] },
+  { glb: "/Proterra_ZX5.glb", match: ["proterra zx5"] },
+  { glb: "/Volvo_7900_electric.glb", match: ["volvo 7900 electric", "volvo 7900"] },
 ];
 
-function getGlbForIndex(index: number) {
-  return GLB_FILES[index % GLB_FILES.length];
+const ALL_GLB_FILES = GLB_ENTRIES.map((e) => e.glb);
+
+/** Normaliza "BYD  K-7" → "byd k7" para comparar nombre+fabricante. */
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[_-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Devuelve el GLB del modelo si es uno default conocido, o null si no. */
+function getGlbForModel(model: BusModel): string | null {
+  const key = normalize(`${model.manufacturer} ${model.name}`);
+  for (const entry of GLB_ENTRIES) {
+    if (entry.match.some((m) => key === m || key.includes(m))) {
+      return entry.glb;
+    }
+  }
+  return null;
 }
 
 function BusModel3D({ glbPath }: { glbPath: string }) {
@@ -46,7 +76,7 @@ function BusModel3D({ glbPath }: { glbPath: string }) {
   );
 }
 
-for (const glb of GLB_FILES) {
+for (const glb of ALL_GLB_FILES) {
   useGLTF.preload(glb);
 }
 
@@ -90,13 +120,18 @@ export function BusCarousel3D({ models }: BusCarousel3DProps) {
   };
 
   const bus = models[currentIndex];
+  const glbPath = getGlbForModel(bus);
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card className="relative h-[600px] overflow-hidden bg-slate-100">
-        <Canvas>
-          <CarouselScene glbPath={getGlbForIndex(currentIndex)} />
-        </Canvas>
+        {glbPath ? (
+          <Canvas>
+            <CarouselScene glbPath={glbPath} />
+          </Canvas>
+        ) : (
+          <BusPlaceholder className="flex h-full w-full items-center justify-center" />
+        )}
 
         <button
           onClick={goToPrevious}
