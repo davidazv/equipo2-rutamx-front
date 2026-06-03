@@ -29,6 +29,7 @@ export function BusCountSelector({
         {presets.map((n) => (
           <button
             key={n}
+            type="button"
             onClick={() => onChange(n)}
             className={cn(
               "px-2 py-1 text-xs rounded-full border transition-colors flex items-center gap-1",

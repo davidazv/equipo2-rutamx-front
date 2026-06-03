@@ -21,6 +21,7 @@ export default function ConfiguracionPage() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passLoading, setPassLoading] = useState(false);
@@ -63,9 +64,14 @@ export default function ConfiguracionPage() {
 
   async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
     setPassMsg(null);
-    if (newPassword.length < 6) {
-      setPassMsg({ type: "err", text: "La contraseña debe tener al menos 6 caracteres" });
+    if (!currentPassword) {
+      setPassMsg({ type: "err", text: "Ingresa tu contraseña actual" });
+      return;
+    }
+    if (!passwordMeetsRequirements(newPassword)) {
+      setPassMsg({ type: "err", text: "La nueva contraseña no cumple los requisitos de seguridad" });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -74,7 +80,8 @@ export default function ConfiguracionPage() {
     }
     setPassLoading(true);
     try {
-      await changePassword(newPassword);
+      await changePassword(user.email, currentPassword, newPassword);
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setPassMsg({ type: "ok", text: "Contraseña cambiada correctamente" });
@@ -168,6 +175,20 @@ export default function ConfiguracionPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordSave} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Contraseña actual
+                </label>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  disabled={passLoading}
+                />
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Nueva contraseña

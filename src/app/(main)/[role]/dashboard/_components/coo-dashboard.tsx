@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
 import { getOperationalSummary, getPassengerTrend, getHourlyStats } from "@/lib/api/kpi";
 import { getAgenciesWithColors } from "@/lib/api/agencies";
+import { formatNumber } from "@/lib/utils";
 import type {
   OperationalSummaryResponse,
   PassengerTrendPoint,
@@ -24,11 +25,6 @@ interface DashboardData {
   agencies: AgencyWithColorsResponse[];
 }
 
-function formatNumber(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toString();
-}
 
 export function CooDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -121,7 +117,7 @@ export function CooDashboard() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="fleet-operations-panel">
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-sm text-text-secondary">

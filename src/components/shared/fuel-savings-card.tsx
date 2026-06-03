@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { Download, Fuel, DollarSign, Gauge, Calendar } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Download, Fuel, DollarSign, Gauge, Calendar, Loader2 } from "lucide-react";
 import { BusCountSelector } from "@/components/shared/bus-count-selector";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -39,20 +39,6 @@ function exportCSV(data: FuelSavingsResponse, tab: string) {
   URL.revokeObjectURL(url);
 }
 
-async function exportPDF(cardRef: React.RefObject<HTMLDivElement | null>) {
-  if (!cardRef.current) return;
-  const html2canvas = (await import("html2canvas")).default;
-  const { jsPDF } = await import("jspdf");
-
-  const canvas = await html2canvas(cardRef.current, { scale: 2 });
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("l", "mm", "a4");
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-  pdf.save("ahorro-combustible.pdf");
-}
-
 export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCardProps) {
   const electricModels = busModels.filter((m) => m.fuelType === "ELECTRIC");
   const [selectedRoute, setSelectedRoute] = useState(routes[0]?.routeId ?? "");
@@ -62,7 +48,8 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
   const [data, setData] = useState<FuelSavingsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!selectedRoute || selectedModel === null || buses < 1) return;
@@ -83,12 +70,128 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
     fetchData();
   }, [fetchData]);
 
+  async function handleExportPdf() {
+    if (!data || exportingPdf) return;
+    setExportingPdf(true);
+    setPdfError(null);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF("l", "mm", "a4");
+      const W = pdf.internal.pageSize.getWidth();
+      const fmtN = (n: number) => n.toLocaleString("es-MX");
+
+      const routeInfo = routes.find((r) => r.routeId === selectedRoute);
+      const modelInfo = electricModels.find((m) => m.id === selectedModel);
+      const routeLabel = routeInfo
+        ? `${routeInfo.routeShortName} — ${routeInfo.routeLongName ?? ""}`
+        : selectedRoute;
+      const modelLabel = modelInfo
+        ? `${modelInfo.manufacturer} ${modelInfo.name}`
+        : `Modelo ${selectedModel}`;
+
+      // ── Header ────────────────────────────────────────────────────────────
+      pdf.setFillColor(30, 64, 175);
+      pdf.rect(0, 0, W, 22, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Proyección de Ahorro — Flota Eléctrica", 14, 14);
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Generado: ${new Date().toLocaleDateString("es-MX", { dateStyle: "long" })}`, W - 14, 14, { align: "right" });
+
+      // ── Scenario ──────────────────────────────────────────────────────────
+      pdf.setTextColor(60, 60, 60);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("ESCENARIO", 14, 32);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Ruta: ${routeLabel}`, 14, 39);
+      pdf.text(`Modelo: ${modelLabel}`, 14, 45);
+      pdf.text(`Buses: ${data.numberOfBuses}`, 14, 51);
+      pdf.text(`Distancia de ruta: ${data.routeDistanceKm.toFixed(1)} km`, 100, 39);
+      pdf.text(`Precio diésel ref.: $${data.dieselReferencePriceMXN} MXN/L`, 100, 45);
+      pdf.text(`Consumo diésel: ${data.dieselConsumptionLKm} L/km`, 100, 51);
+
+      // ── KPI boxes ─────────────────────────────────────────────────────────
+      const kpis = [
+        { label: "Ahorro anual combustible", value: `$${fmtN(Math.round(data.fuelSavingsMXN))} MXN` },
+        { label: "Litros diésel ahorrados/año", value: `${fmtN(Math.round(data.fuelSavingsLiters))} L` },
+        { label: "Costo diésel/año (actual)", value: `$${fmtN(Math.round(data.dieselCostPerYear))} MXN` },
+        { label: "Costo eléctrico/año", value: `$${fmtN(Math.round(data.electricCostPerYear))} MXN` },
+      ];
+      const boxW = (W - 28 - 9) / 4;
+      kpis.forEach((kpi, i) => {
+        const x = 14 + i * (boxW + 3);
+        pdf.setFillColor(243, 244, 246);
+        pdf.roundedRect(x, 58, boxW, 20, 2, 2, "F");
+        pdf.setTextColor(100, 100, 100);
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        pdf.text(kpi.label, x + boxW / 2, 64, { align: "center" });
+        pdf.setTextColor(30, 64, 175);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(kpi.value, x + boxW / 2, 72, { align: "center" });
+      });
+
+      // ── Projection table ──────────────────────────────────────────────────
+      pdf.setTextColor(60, 60, 60);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("PROYECCIÓN ANUAL", 14, 90);
+
+      const headers = ["Año", "Ahorro MXN", "Litros ahorrados", "Ahorro acumulado MXN", "Litros acumulados"];
+      const colWidths = [18, 55, 55, 65, 55];
+      const colX = colWidths.reduce<number[]>((acc, w, i) => {
+        acc.push(i === 0 ? 14 : acc[i - 1] + colWidths[i - 1]);
+        return acc;
+      }, []);
+
+      // Header row
+      pdf.setFillColor(30, 64, 175);
+      pdf.rect(14, 93, W - 28, 8, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(7.5);
+      headers.forEach((h, i) => {
+        pdf.text(h, colX[i] + colWidths[i] / 2, 98.5, { align: "center" });
+      });
+
+      // Data rows
+      pdf.setFont("helvetica", "normal");
+      for (let y = 1; y <= data.projectionYears; y++) {
+        const rowY = 101 + (y - 1) * 9;
+        pdf.setFillColor(y % 2 === 0 ? 248 : 255, y % 2 === 0 ? 249 : 255, y % 2 === 0 ? 251 : 255);
+        pdf.rect(14, rowY, W - 28, 8, "F");
+        pdf.setTextColor(60, 60, 60);
+        const rowData = [
+          `Año ${y}`,
+          `$${fmtN(Math.round(data.fuelSavingsMXN))}`,
+          `${fmtN(Math.round(data.fuelSavingsLiters))} L`,
+          `$${fmtN(Math.round(data.fuelSavingsMXN * y))}`,
+          `${fmtN(Math.round(data.fuelSavingsLiters * y))} L`,
+        ];
+        rowData.forEach((cell, i) => {
+          pdf.text(cell, colX[i] + colWidths[i] / 2, rowY + 5.5, { align: "center" });
+        });
+      }
+
+      pdf.save("ahorro-combustible.pdf");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[exportPDF]", err);
+      setPdfError(msg);
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
   const monthlyChartData = data ? buildMonthlyChartData(data) : null;
   const annualChartData = data ? buildAnnualChartData(data) : null;
   const accumulatedChartData = data ? buildAccumulatedChartData(data) : null;
 
   return (
-    <Card ref={cardRef} className={cn(className)}>
+    <Card className={cn(className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold">
@@ -97,6 +200,7 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
           {data && (
             <div className="flex gap-1.5">
               <button
+                type="button"
                 onClick={() => exportCSV(data, tab)}
                 className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
               >
@@ -104,10 +208,14 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
                 CSV
               </button>
               <button
-                onClick={() => exportPDF(cardRef)}
-                className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
+                type="button"
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download className="h-3 w-3" />
+                {exportingPdf
+                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                  : <Download className="h-3 w-3" />}
                 PDF
               </button>
             </div>
@@ -150,14 +258,26 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}
+        {pdfError && (
+          <p className="text-xs text-destructive bg-destructive/10 rounded px-2 py-1">
+            Error PDF: {pdfError}
+          </p>
+        )}
 
-        {loading && (
+        {/* First-load spinner (no data yet) */}
+        {loading && !data && (
           <div className="flex items-center justify-center py-12">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
 
-        {data && !loading && (
+        {data && (
+          <div className="relative">
+            {loading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-[1px]">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            )}
           <>
             {/* KPI summary row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -289,6 +409,7 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
               </Tabs.Content>
             </Tabs.Root>
           </>
+          </div>
         )}
       </CardContent>
     </Card>

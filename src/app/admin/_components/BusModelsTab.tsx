@@ -152,7 +152,7 @@ export default function BusModelsTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-surface shadow-border overflow-hidden">
+      <div className="rounded-xl border border-border bg-surface shadow-border overflow-hidden" data-testid="bus-models-table">
         <Table>
           <TableHeader>
             <TableRow>
