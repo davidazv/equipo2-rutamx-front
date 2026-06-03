@@ -107,7 +107,7 @@ export function CmoDashboard() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="co2-savings-chart">
       <div>
         <h1 className="text-2xl font-bold">Análisis de Rutas</h1>
         <p className="text-sm text-text-secondary">

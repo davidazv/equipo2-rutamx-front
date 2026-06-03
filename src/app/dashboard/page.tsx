@@ -77,7 +77,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="roi-dashboard">
       <div>
         <h1 className="text-xl font-bold">Dashboard</h1>
         <p className="text-xs text-muted-foreground">

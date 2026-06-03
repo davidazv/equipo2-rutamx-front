@@ -176,7 +176,7 @@ export function BusModelEditModal({ model, onClose, onUpdated, addToast }: Props
 
   return (
     <Dialog open={model !== null} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="bus-model-detail">
         <DialogHeader>
           <DialogTitle>Editar Modelo de Autobús</DialogTitle>
         </DialogHeader>

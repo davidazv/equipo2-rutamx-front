@@ -128,7 +128,7 @@ export function EnergyConsumptionCalculator({
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4" data-testid="simulation-form">
       <h3 className="text-sm font-semibold flex items-center gap-2">
         <Zap className="h-4 w-4 text-primary" />
         Simulador de Batería
@@ -181,7 +181,7 @@ export function EnergyConsumptionCalculator({
         </div>
       )}
 
-      <div className="space-y-3 pt-2 border-t border-border">
+      <div className="space-y-3 pt-2 border-t border-border" data-testid="simulation-result">
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Ruta</span>
           <span className="text-sm font-medium">
