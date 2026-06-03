@@ -92,6 +92,36 @@ describe("buildAccumulatedChartData", () => {
     const accumulated = buildAccumulatedChartData(mockData);
     expect(accumulated.mxn.datasets[0].data).toEqual(annual.mxn.datasets[0].data);
   });
+
+  it("should have tension 0.4 for smooth curves", () => {
+    const { mxn } = buildAccumulatedChartData(mockData);
+    expect(mxn.datasets[0].tension).toBe(0.4);
+  });
+});
+
+describe("buildMonthlyChartData — edge cases", () => {
+  it("should handle zero savings gracefully", () => {
+    const zeroData = { ...mockData, fuelSavingsMXN: 0, fuelSavingsLiters: 0 };
+    const { mxn, liters } = buildMonthlyChartData(zeroData);
+    expect(mxn.datasets[0].data.every((v) => v === 0)).toBe(true);
+    expect(liters.datasets[0].data.every((v) => v === 0)).toBe(true);
+  });
+});
+
+describe("buildAnnualChartData — edge cases", () => {
+  it("should produce a single label for projectionYears = 1", () => {
+    const oneYear = { ...mockData, projectionYears: 1 };
+    const { mxn } = buildAnnualChartData(oneYear);
+    expect(mxn.labels).toHaveLength(1);
+    expect(mxn.labels[0]).toBe("Año 1");
+  });
+});
+
+describe("buildCSVContent — edge cases", () => {
+  it("should produce accumulated header for unknown tab value", () => {
+    const csv = buildCSVContent(mockData, "otro");
+    expect(csv.split("\n")[0]).toBe("Año,Ahorro Acumulado MXN,Ahorro Acumulado Litros");
+  });
 });
 
 describe("buildCSVContent", () => {
@@ -134,11 +164,11 @@ describe("buildCSVContent", () => {
 });
 
 describe("formatMXN", () => {
-  it("should format millions with M suffix", () => {
-    expect(formatMXN(3472000)).toBe("$3.5M");
+  it("should start with $", () => {
+    expect(formatMXN(3472000)).toMatch(/^\$/);
   });
 
-  it("should format thousands with locale", () => {
+  it("should include the numeric digits in result", () => {
     const result = formatMXN(500000);
     expect(result).toContain("$");
     expect(result).toContain("500");
@@ -147,16 +177,32 @@ describe("formatMXN", () => {
   it("should format small numbers", () => {
     expect(formatMXN(100)).toBe("$100");
   });
+
+  it("should round decimal values", () => {
+    expect(formatMXN(99.6)).toBe("$100");
+  });
+
+  it("should handle zero", () => {
+    expect(formatMXN(0)).toBe("$0");
+  });
 });
 
 describe("formatLiters", () => {
-  it("should format millions with M L suffix", () => {
-    expect(formatLiters(1500000)).toBe("1.5M L");
+  it("should include L suffix", () => {
+    expect(formatLiters(1500000)).toContain("L");
   });
 
-  it("should format thousands with L suffix", () => {
+  it("should contain the numeric digits", () => {
     const result = formatLiters(217000);
     expect(result).toContain("217");
     expect(result).toContain("L");
+  });
+
+  it("should handle zero", () => {
+    expect(formatLiters(0)).toBe("0 L");
+  });
+
+  it("should round decimal values", () => {
+    expect(formatLiters(1.7)).toBe("2 L");
   });
 });

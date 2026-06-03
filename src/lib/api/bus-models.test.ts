@@ -140,3 +140,124 @@ describe("getBusModelById", () => {
     expect(result.co2EmissionsGKm).toBe(940);
   });
 });
+
+import { createBusModel, updateBusModel, deleteBusModel } from "./bus-models";
+
+describe("createBusModel", () => {
+  const input = {
+    name: "Test Bus",
+    manufacturer: "Test Co",
+    fuelType: "ELECTRIC" as const,
+    autonomyKm: 300,
+    passengerCapacity: 80,
+    unitCostUsd: 400000,
+    batteryCapacityKwh: 350,
+  };
+
+  it("should create a bus model successfully", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL, 201));
+
+    const result = await createBusModel(input);
+
+    expect(result).toEqual(SAMPLE_MODEL);
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/bus-models",
+      expect.objectContaining({ method: "POST" })
+    );
+  });
+
+  it("should throw MODEL_ALREADY_EXISTS on 409", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(null, 409));
+
+    await expect(createBusModel(input)).rejects.toThrow("MODEL_ALREADY_EXISTS");
+  });
+
+  it("should throw CREATE_FAILED on other errors", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(null, 500));
+
+    await expect(createBusModel(input)).rejects.toThrow("CREATE_FAILED");
+  });
+
+  it("should send null for missing optional fields", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL, 201));
+
+    await createBusModel(input);
+
+    const body = JSON.parse(mockApiFetch.mock.calls[0][1].body);
+    expect(body.energyConsumptionKwhKm).toBeNull();
+    expect(body.fuelConsumptionLKm).toBeNull();
+    expect(body.maintenanceCostPerKm).toBeNull();
+    expect(body.co2EmissionsGKm).toBeNull();
+  });
+
+  it("should send provided optional fields", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL, 201));
+    const withOptionals = { ...input, energyConsumptionKwhKm: 1.0, co2EmissionsGKm: 0 };
+
+    await createBusModel(withOptionals);
+
+    const body = JSON.parse(mockApiFetch.mock.calls[0][1].body);
+    expect(body.energyConsumptionKwhKm).toBe(1.0);
+    expect(body.co2EmissionsGKm).toBe(0);
+  });
+});
+
+describe("updateBusModel", () => {
+  it("should merge partial input with current model", async () => {
+    mockApiFetch
+      .mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL))
+      .mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL));
+
+    const result = await updateBusModel(1, { name: "Updated Name" });
+
+    expect(result).toEqual(SAMPLE_MODEL);
+    const body = JSON.parse(mockApiFetch.mock.calls[1][1].body);
+    expect(body.name).toBe("Updated Name");
+    expect(body.manufacturer).toBe(SAMPLE_MODEL.manufacturer);
+  });
+
+  it("should throw MODEL_NOT_FOUND on 404", async () => {
+    mockApiFetch
+      .mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL))
+      .mockResolvedValueOnce(jsonResponse(null, 404));
+
+    await expect(updateBusModel(999, {})).rejects.toThrow("MODEL_NOT_FOUND");
+  });
+
+  it("should throw MODEL_ALREADY_EXISTS on 409", async () => {
+    mockApiFetch
+      .mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL))
+      .mockResolvedValueOnce(jsonResponse(null, 409));
+
+    await expect(updateBusModel(1, { name: "Dup" })).rejects.toThrow("MODEL_ALREADY_EXISTS");
+  });
+
+  it("should throw UPDATE_FAILED on other errors", async () => {
+    mockApiFetch
+      .mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL))
+      .mockResolvedValueOnce(jsonResponse(null, 500));
+
+    await expect(updateBusModel(1, {})).rejects.toThrow("UPDATE_FAILED");
+  });
+});
+
+describe("deleteBusModel", () => {
+  it("should delete a bus model successfully", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(null, 204));
+
+    await expect(deleteBusModel(1)).resolves.toBeUndefined();
+    expect(mockApiFetch).toHaveBeenCalledWith("/api/bus-models/1", { method: "DELETE" });
+  });
+
+  it("should throw MODEL_NOT_FOUND on 404", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(null, 404));
+
+    await expect(deleteBusModel(999)).rejects.toThrow("MODEL_NOT_FOUND");
+  });
+
+  it("should throw DELETE_FAILED on other errors", async () => {
+    mockApiFetch.mockResolvedValueOnce(jsonResponse(null, 500));
+
+    await expect(deleteBusModel(1)).rejects.toThrow("DELETE_FAILED");
+  });
+});

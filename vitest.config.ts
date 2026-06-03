@@ -18,13 +18,33 @@ export default defineConfig({
     },
   },
   test: {
+    coverage: {
+      provider: 'v8',
+      include: [
+        'src/lib/fuel-savings-utils.ts',
+        'src/lib/utils.ts',
+        'src/hooks/use-current-role.ts',
+        'src/hooks/use-current-user.ts',
+        'src/components/ui/button.tsx',
+        'src/components/ui/badge.tsx',
+        'src/components/ui/spinner.tsx',
+        'src/components/ui/error-state.tsx',
+        'src/components/ui/card.tsx',
+        'src/components/shared/kpi-card.tsx',
+        'src/lib/api/bus-models.ts',
+        'src/lib/api/energy.ts',
+        'src/lib/api/fuel-savings.ts',
+      ],
+      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+    },
     projects: [
       {
         extends: true,
         test: {
           name: 'unit',
-          include: ['src/**/*.test.ts'],
-          environment: 'node',
+          include: ['src/**/*.{test.ts,test.tsx}'],
+          environment: 'jsdom',
+          setupFiles: ['./src/setupTests.ts'],
         },
       },
       {
