@@ -117,7 +117,7 @@ export function CooDashboard() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="fleet-operations-panel">
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-sm text-text-secondary">
