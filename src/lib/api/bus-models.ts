@@ -3,9 +3,23 @@
  */
 
 import { apiFetch } from './client'
-import { type BusModel, type FuelType } from '@/lib/mock/bus-models'
 
-export type { BusModel, FuelType }
+export type FuelType = 'ELECTRIC' | 'DIESEL'
+
+export interface BusModel {
+  id: number
+  name: string
+  manufacturer: string
+  fuelType: FuelType
+  autonomyKm: number
+  passengerCapacity: number
+  unitCostUsd: number
+  batteryCapacityKwh: number | null
+  energyConsumptionKwhKm: number | null
+  fuelConsumptionLKm: number | null
+  maintenanceCostPerKm: number | null
+  co2EmissionsGKm: number | null
+}
 
 export interface CreateBusModelInput {
   name: string
