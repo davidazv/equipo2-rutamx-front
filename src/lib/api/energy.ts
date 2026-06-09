@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { apiGet } from './client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -49,25 +49,14 @@ export interface EnergyConsumptionResponse {
   canCompleteRoute: boolean;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
-  }
-  return res.json();
-}
-
 // ── API functions ──────────────────────────────────────────────────────────
 
 export async function getBusModels(): Promise<BusModelResponse[]> {
-  return apiFetch<BusModelResponse[]>("/api/bus-models");
+  return apiGet<BusModelResponse[]>("/api/bus-models");
 }
 
 export async function getRoutes(): Promise<RouteResponse[]> {
-  return apiFetch<RouteResponse[]>("/api/routes");
+  return apiGet<RouteResponse[]>("/api/routes");
 }
 
 export async function getRoutesWithShapes(
@@ -76,7 +65,7 @@ export async function getRoutesWithShapes(
   const params = agencyId
     ? `?agencyId=${encodeURIComponent(agencyId)}`
     : "";
-  return apiFetch<RouteWithShapes[]>(`/api/routes/shapes${params}`);
+  return apiGet<RouteWithShapes[]>(`/api/routes/shapes${params}`);
 }
 
 // ── HU19: Route travel time comparison ────────────────────────────────────
@@ -95,7 +84,7 @@ export interface RouteTimeComparison {
 }
 
 export async function getRouteTravelTimes(): Promise<RouteTimeComparison[]> {
-  return apiFetch<RouteTimeComparison[]>("/api/routes/travel-times");
+  return apiGet<RouteTimeComparison[]>("/api/routes/travel-times");
 }
 
 export async function calculateEnergyConsumption(
@@ -103,7 +92,7 @@ export async function calculateEnergyConsumption(
   busModelId: number,
   occupancyPercent: number
 ): Promise<EnergyConsumptionResponse> {
-  return apiFetch<EnergyConsumptionResponse>(
+  return apiGet<EnergyConsumptionResponse>(
     `/api/energy-consumption?routeId=${encodeURIComponent(routeId)}&busModelId=${busModelId}&occupancyPercent=${occupancyPercent}`
   );
 }

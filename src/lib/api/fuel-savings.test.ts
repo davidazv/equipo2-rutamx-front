@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockApiGet = vi.fn();
+vi.mock("./client", () => ({
+  apiGet: (...args: unknown[]) => mockApiGet(...args),
+}));
+
 import { getFuelSavings, type FuelSavingsResponse } from "./fuel-savings";
-
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
-
-function jsonResponse(data: unknown, status = 200) {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(data),
-    text: () => Promise.resolve(JSON.stringify(data)),
-  };
-}
 
 const mockSavings: FuelSavingsResponse = {
   routeId: "TR13",
@@ -29,55 +23,53 @@ const mockSavings: FuelSavingsResponse = {
 };
 
 beforeEach(() => {
-  mockFetch.mockReset();
+  mockApiGet.mockReset();
 });
 
 describe("getFuelSavings", () => {
   it("should fetch fuel savings with correct params", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse(mockSavings));
+    mockApiGet.mockResolvedValueOnce(mockSavings);
 
     const result = await getFuelSavings("TR13", 1, 10, 5);
 
     expect(result).toEqual(mockSavings);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "/api/fuel-savings?routeId=TR13&modelId=1&buses=10&years=5"
-      )
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/fuel-savings?routeId=TR13&modelId=1&buses=10&years=5"
     );
   });
 
   it("should throw on API error", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse("Ruta no encontrada", 404));
+    mockApiGet.mockRejectedValueOnce(new Error("Ruta no encontrada"));
 
     await expect(getFuelSavings("INVALID", 1, 10)).rejects.toThrow();
   });
 
   it("should encode routeId with special characters", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse(mockSavings));
+    mockApiGet.mockResolvedValueOnce(mockSavings);
 
     await getFuelSavings("R/1", 1, 10);
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockApiGet).toHaveBeenCalledWith(
       expect.stringContaining("routeId=R%2F1")
     );
   });
 
   it("should use default years when not provided", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse(mockSavings));
+    mockApiGet.mockResolvedValueOnce(mockSavings);
 
     await getFuelSavings("TR13", 1, 10);
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockApiGet).toHaveBeenCalledWith(
       expect.stringContaining("years=5")
     );
   });
 
   it("should pass custom years param", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse(mockSavings));
+    mockApiGet.mockResolvedValueOnce(mockSavings);
 
     await getFuelSavings("TR13", 1, 10, 3);
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockApiGet).toHaveBeenCalledWith(
       expect.stringContaining("years=3")
     );
   });
