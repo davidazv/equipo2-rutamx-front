@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { apiGet } from './client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -17,17 +17,6 @@ export interface FuelSavingsResponse {
   projectionYears: number;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
-  }
-  return res.json();
-}
-
 // ── API functions ──────────────────────────────────────────────────────────
 
 export async function getFuelSavings(
@@ -36,7 +25,7 @@ export async function getFuelSavings(
   buses: number,
   years = 5
 ): Promise<FuelSavingsResponse> {
-  return apiFetch<FuelSavingsResponse>(
+  return apiGet<FuelSavingsResponse>(
     `/api/fuel-savings?routeId=${encodeURIComponent(routeId)}&modelId=${modelId}&buses=${buses}&years=${years}`
   );
 }
