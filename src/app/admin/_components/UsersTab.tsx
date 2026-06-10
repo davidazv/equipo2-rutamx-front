@@ -44,8 +44,8 @@ interface Toast {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
-  return iso.slice(0, 10)
+function formatDate(iso: string | null | undefined): string {
+  return iso ? iso.slice(0, 10) : '—'
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
