@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { deleteBusModel } from '@/lib/api/bus-models'
 import type { BusModel } from '@/lib/api/bus-models'
+import { useConfirmAction } from '@/hooks/use-confirm-action'
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
@@ -25,22 +25,17 @@ interface Props {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function BusModelDeleteModal({ model, onClose, onDeleted, addToast }: Props) {
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleConfirm() {
-    if (!model) return
-    setSubmitting(true)
-    try {
+  const { submitting, confirm: handleConfirm } = useConfirmAction({
+    action: async () => {
+      if (!model) return
       await deleteBusModel(model.id)
       onDeleted(model.id)
       addToast(`Modelo "${model.name}" eliminado.`, 'warning')
-    } catch {
-      addToast('Ocurrió un error al eliminar el modelo.', 'error')
-    } finally {
-      setSubmitting(false)
-      onClose()
-    }
-  }
+    },
+    errorToast: { message: 'Ocurrió un error al eliminar el modelo.' },
+    addToast,
+    onClose,
+  })
 
   return (
     <Dialog open={model !== null} onOpenChange={(open) => { if (!open) onClose() }}>
