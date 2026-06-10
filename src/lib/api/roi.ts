@@ -1,3 +1,5 @@
+import { throwResponseError } from "./http-error";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -41,8 +43,7 @@ export interface RoiEstimateResponse {
 async function apiFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
+    await throwResponseError(res);
   }
   return res.json();
 }

@@ -1,4 +1,5 @@
 import { apiFetch } from './client'
+import { throwResponseError } from './http-error'
 
 export interface TcoDataPoint {
   year: number
@@ -49,8 +50,7 @@ export async function getComparativeReport(
   const res = await apiFetch(`/api/reports/comparative?${query}`)
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Error desconocido')
-    throw new Error(text)
+    await throwResponseError(res)
   }
 
   return res.json()
