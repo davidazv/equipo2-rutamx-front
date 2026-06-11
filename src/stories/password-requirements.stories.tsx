@@ -28,6 +28,7 @@ export const AllMet: Story = {
 };
 
 export const Interactive: Story = {
+  args: { password: "" },
   render: () => {
     const [password, setPassword] = useState("");
     return (

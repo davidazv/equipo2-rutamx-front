@@ -42,6 +42,7 @@ export const WithIcon: Story = {
 };
 
 export const Grid: Story = {
+  args: { title: "Total Buses", value: "148" },
   render: () => (
     <div className="grid grid-cols-2 gap-3 w-[480px]">
       <KpiCard title="Total Buses" value="148" sub="en la flota" icon={<Bus className="h-4 w-4" />} />

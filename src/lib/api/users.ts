@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api/client'
+import { apiClient, apiFetch } from '@/lib/api/client'
 
 export type Role = 'ADMIN' | 'CEO' | 'COO' | 'CMO'
 export type UserStatus = 'ACTIVE' | 'SUSPENDED'
@@ -151,16 +151,15 @@ export async function resetUserPassword(id: number, newPassword: string): Promis
 // ── HU25 – Export users CSV ────────────────────────────────────────────────
 
 export async function exportUsersCsv(): Promise<void> {
-  const res = await apiFetch('/admin/users/export')
-  console.log('[HU25] export status:', res.status, 'headers:', [...res.headers.entries()])
-  if (!res.ok) throw new Error(`EXPORT_FAILED:${res.status}`)
+  const res = await apiClient.get<Blob>('/admin/users/export', { responseType: 'blob' })
+  if (res.status < 200 || res.status >= 300) throw new Error(`EXPORT_FAILED:${res.status}`)
 
-  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const disposition = (res.headers['content-disposition'] as string | undefined) ?? ''
   const match = disposition.match(/filename="?([^"]+)"?/)
   const today = new Date().toISOString().slice(0, 10)
   const filename = match ? match[1] : `usuarios_${today}.csv`
 
-  const blob = await res.blob()
+  const blob = res.data
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

@@ -13,6 +13,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  args: { value: 10, onChange: () => {} },
   render: () => {
     const [value, setValue] = useState(10);
     return <BusCountSelector value={value} onChange={setValue} />;
@@ -20,6 +21,7 @@ export const Default: Story = {
 };
 
 export const CustomPresets: Story = {
+  args: { value: 15, onChange: () => {} },
   render: () => {
     const [value, setValue] = useState(15);
     return (
@@ -33,6 +35,7 @@ export const CustomPresets: Story = {
 };
 
 export const SinglePreset: Story = {
+  args: { value: 1, onChange: () => {} },
   render: () => {
     const [value, setValue] = useState(1);
     return <BusCountSelector value={value} onChange={setValue} presets={[1]} />;
