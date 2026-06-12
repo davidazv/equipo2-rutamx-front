@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { suspendUser } from '@/lib/api/users'
 import type { User } from '@/lib/api/users'
+import { useConfirmAction } from '@/hooks/use-confirm-action'
 
 interface Props {
   user: User | null
@@ -21,7 +22,6 @@ interface Props {
 
 export function UserSuspendModal({ user, onClose, onSuspended, addToast }: Props) {
   const [suspendReason, setSuspendReason] = useState('')
-  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -29,24 +29,21 @@ export function UserSuspendModal({ user, onClose, onSuspended, addToast }: Props
     }
   }, [user])
 
-  async function handleConfirm() {
-    if (!user) return
-    if (!suspendReason.trim()) return
-    setSubmitting(true)
-    try {
+  const { submitting, confirm: handleConfirm } = useConfirmAction({
+    action: async () => {
+      if (!user) return
+      if (!suspendReason.trim()) return
       const updated = await suspendUser(user.id, suspendReason.trim())
       onSuspended(updated)
       addToast(
         `${updated.firstName} ${updated.lastName} ha sido suspendido/a.`,
         'warning'
       )
-    } catch {
-      addToast('Ocurrió un error al suspender el usuario.', 'error')
-    } finally {
-      setSubmitting(false)
-      onClose()
-    }
-  }
+    },
+    errorToast: { message: 'Ocurrió un error al suspender el usuario.' },
+    addToast,
+    onClose,
+  })
 
   return (
     <Dialog

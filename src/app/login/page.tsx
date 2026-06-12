@@ -33,15 +33,6 @@ const STATIONS: Station[] = [
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
-function emailFromToken(token: string): string | null {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    return payload.email ?? null;
-  } catch {
-    return null;
-  }
-}
-
 const LX  = 185;
 const Y0  = 55;
 const Y1  = 710;
@@ -66,15 +57,11 @@ export default function LoginPage() {
       let destination: string | null = null;
       const token = getToken();
       if (token) {
-        const currentEmail = emailFromToken(token);
-        const res = await fetch(`${API_URL}/admin/users`, {
+        const res = await fetch(`${API_URL}/api/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const users: Array<{ id: number; email: string; roleName: string; firstName: string; lastName: string }> = await res.json();
-          const me = users.find(
-            (u) => u.email.toLowerCase() === currentEmail?.toLowerCase()
-          );
+          const me: { id: number; email: string; roleName: string; firstName: string; lastName: string } = await res.json();
           const roleRoutes: Record<string, string> = {
             ADMIN: "/admin",
             CEO:   "/ceo/map",
@@ -215,10 +202,12 @@ export default function LoginPage() {
 
               {/* Vehicle glow — infinite N→S */}
               <motion.circle cx={LX} r={12} fill="#38bdf8" opacity={0.9} filter="url(#gv)"
+                initial={{ cy: Y0 }}
                 animate={{ cy: [Y0, Y1] }}
                 transition={{ duration: 8, ease: "linear", repeat: Infinity, repeatDelay: 1.5 }}
               />
               <motion.circle cx={LX} r={4.5} fill="white"
+                initial={{ cy: Y0 }}
                 animate={{ cy: [Y0, Y1] }}
                 transition={{ duration: 8, ease: "linear", repeat: Infinity, repeatDelay: 1.5 }}
               />
@@ -226,7 +215,8 @@ export default function LoginPage() {
               {/* Ping rings on transfer stations */}
               {STATIONS.filter((s) => s.isTransfer).map((s, i) => (
                 <motion.circle key={`ping-${s.id}`} cx={LX} cy={s.y}
-                  r={s.isTerminal ? 11 : 8} fill="none" stroke="#22d3ee" strokeWidth="1"
+                  initial={{ r: s.isTerminal ? 11 : 8, opacity: 0.5 }}
+                  fill="none" stroke="#22d3ee" strokeWidth="1"
                   animate={{ r: [s.isTerminal ? 11 : 8, s.isTerminal ? 26 : 22], opacity: [0.5, 0] }}
                   transition={{ duration: 2.8, ease: "easeOut", repeat: Infinity, delay: i * 0.6, repeatDelay: 0.4 }}
                 />
@@ -245,7 +235,9 @@ export default function LoginPage() {
                     style={{ cursor: "pointer" }}
                   >
                     {isHov && (
-                      <motion.circle cx={LX} cy={s.y} r={r} fill="none" stroke="#7dd3fc" strokeWidth="1.5"
+                      <motion.circle cx={LX} cy={s.y}
+                        initial={{ r, opacity: 0.8 }}
+                        fill="none" stroke="#7dd3fc" strokeWidth="1.5"
                         animate={{ r: [r, r + 18], opacity: [0.8, 0] }}
                         transition={{ duration: 0.6, repeat: Infinity }}
                       />

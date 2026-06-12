@@ -26,11 +26,12 @@ interface GlbEntry {
 }
 
 const GLB_ENTRIES: GlbEntry[] = [
-  { glb: "/BYD_K7.glb", match: ["byd k7"] },
-  { glb: "/BYD_K9.glb", match: ["byd k9"] },
-  { glb: "/New_Flyer_Xcelsior_XE40.glb", match: ["new flyer xcelsior xe40", "newflyer xcelsior xe40"] },
-  { glb: "/Proterra_ZX5.glb", match: ["proterra zx5"] },
-  { glb: "/Volvo_7900_electric.glb", match: ["volvo 7900 electric", "volvo 7900"] },
+  { glb: "/BYD_K7.glb", match: ["byd k7", "yutong dmt hybrid h10"] },
+  { glb: "/BYD_K9.glb", match: ["byd k9", "yutong e12pro"] },
+  { glb: "/New_Flyer_Xcelsior_XE40.glb", match: ["new flyer xcelsior xe40", "newflyer xcelsior xe40", "yutong zk5180c"] },
+  { glb: "/Proterra_ZX5.glb", match: ["proterra zx5", "yutong zk5120c"] },
+  { glb: "/Volvo_7900_electric.glb", match: ["volvo 7900 electric", "volvo 7900", "yutong dmt hybrid h8"] },
+  { glb: "/primer-modelo.glb", match: ["yutong dmt hybrid h12"] },
 ];
 
 const ALL_GLB_FILES = GLB_ENTRIES.map((e) => e.glb);

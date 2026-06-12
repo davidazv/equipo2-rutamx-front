@@ -1,3 +1,5 @@
+import { throwResponseError } from "./http-error";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export interface CsvImportResult {
@@ -37,8 +39,7 @@ export async function uploadCsv(
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
+    await throwResponseError(res);
   }
 
   return res.json();

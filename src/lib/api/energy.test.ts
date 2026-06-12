@@ -1,4 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockApiGet = vi.fn();
+vi.mock("./client", () => ({
+  apiGet: (...args: unknown[]) => mockApiGet(...args),
+}));
+
 import {
   calculateEnergyConsumption,
   getBusModels,
@@ -10,20 +16,8 @@ import {
   type RouteWithShapes,
 } from "./energy";
 
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
-
-function jsonResponse(data: unknown, status = 200) {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(data),
-    text: () => Promise.resolve(JSON.stringify(data)),
-  };
-}
-
 beforeEach(() => {
-  mockFetch.mockReset();
+  mockApiGet.mockReset();
 });
 
 describe("getBusModels", () => {
@@ -44,18 +38,16 @@ describe("getBusModels", () => {
         co2EmissionsGKm: 0,
       },
     ];
-    mockFetch.mockResolvedValueOnce(jsonResponse(models));
+    mockApiGet.mockResolvedValueOnce(models);
 
     const result = await getBusModels();
 
     expect(result).toEqual(models);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/bus-models")
-    );
+    expect(mockApiGet).toHaveBeenCalledWith("/api/bus-models");
   });
 
   it("should throw on API error", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse("Not found", 404));
+    mockApiGet.mockRejectedValueOnce(new Error("Not found"));
 
     await expect(getBusModels()).rejects.toThrow();
   });
@@ -73,14 +65,12 @@ describe("getRoutes", () => {
         distanceKm: 20.0,
       },
     ];
-    mockFetch.mockResolvedValueOnce(jsonResponse(routes));
+    mockApiGet.mockResolvedValueOnce(routes);
 
     const result = await getRoutes();
 
     expect(result).toEqual(routes);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/routes")
-    );
+    expect(mockApiGet).toHaveBeenCalledWith("/api/routes");
   });
 });
 
@@ -101,14 +91,12 @@ describe("getRoutesWithShapes", () => {
         ],
       },
     ];
-    mockFetch.mockResolvedValueOnce(jsonResponse(routes));
+    mockApiGet.mockResolvedValueOnce(routes);
 
     const result = await getRoutesWithShapes();
 
     expect(result).toEqual(routes);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/routes/shapes")
-    );
+    expect(mockApiGet).toHaveBeenCalledWith("/api/routes/shapes");
   });
 });
 
@@ -125,15 +113,13 @@ describe("calculateEnergyConsumption", () => {
       remainingRangeKm: 191.7,
       canCompleteRoute: true,
     };
-    mockFetch.mockResolvedValueOnce(jsonResponse(response));
+    mockApiGet.mockResolvedValueOnce(response);
 
     const result = await calculateEnergyConsumption("TR13", 1, 50);
 
     expect(result).toEqual(response);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "/api/energy-consumption?routeId=TR13&busModelId=1&occupancyPercent=50"
-      )
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/energy-consumption?routeId=TR13&busModelId=1&occupancyPercent=50"
     );
   });
 
@@ -149,19 +135,17 @@ describe("calculateEnergyConsumption", () => {
       remainingRangeKm: 250.0,
       canCompleteRoute: true,
     };
-    mockFetch.mockResolvedValueOnce(jsonResponse(response));
+    mockApiGet.mockResolvedValueOnce(response);
 
     await calculateEnergyConsumption("R/1", 1, 0);
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockApiGet).toHaveBeenCalledWith(
       expect.stringContaining("routeId=R%2F1")
     );
   });
 
   it("should throw on API error", async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse("Ruta no encontrada", 404)
-    );
+    mockApiGet.mockRejectedValueOnce(new Error("Ruta no encontrada"));
 
     await expect(
       calculateEnergyConsumption("INVALID", 1, 50)

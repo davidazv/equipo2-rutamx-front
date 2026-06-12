@@ -1,30 +1,55 @@
+import axios, { type AxiosRequestConfig } from 'axios'
 import { getToken, refreshIdToken } from '@/lib/auth'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
-async function doFetch(path: string, init: RequestInit, token: string | null): Promise<Response> {
-  const headers = new Headers(init.headers)
-  headers.set('Content-Type', 'application/json')
-  if (token) headers.set('Authorization', `Bearer ${token}`)
-  return fetch(`${API_URL}${path}`, { ...init, headers })
-}
+export const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+  validateStatus: () => true, // never throw on HTTP status — callers inspect res.ok / res.status
+})
 
-export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+apiClient.interceptors.request.use((config) => {
   const token = getToken()
-  const res = await doFetch(path, init, token)
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
-  if (res.status === 401) {
-    // Try refreshing the Firebase ID token once before propagating the error
+export async function apiFetch(path: string, init: RequestInit = {}) {
+  const method = (init.method ?? 'GET') as AxiosRequestConfig['method']
+  const data = init.body ? JSON.parse(init.body as string) : undefined
+
+  let response = await apiClient.request({ url: path, method, data })
+
+  if (response.status === 401) {
     const newToken = await refreshIdToken()
     if (newToken) {
-      const retried = await doFetch(path, init, newToken)
-      if (retried.status !== 401) return retried
+      apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`
+      const retried = await apiClient.request({ url: path, method, data })
+      if (retried.status !== 401) response = retried
+    } else {
+      console.warn('apiFetch: 401, token refresh failed or unavailable')
     }
-    // Refresh failed — return the 401 so the component shows its error state.
-    // Do NOT call signOut() or redirect here; the user stays on the page and
-    // can sign out manually. AuthGuard handles session validation on navigation.
-    console.warn('apiFetch: 401, token refresh failed or unavailable')
   }
 
-  return res
+  const responseData = response.data
+  const status = response.status
+
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(responseData),
+    text: () => Promise.resolve(
+      typeof responseData === 'string' ? responseData : JSON.stringify(responseData)
+    ),
+  }
+}
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const response = await apiClient.get<T>(path)
+  if (response.status < 200 || response.status >= 300) {
+    const msg = typeof response.data === 'string' ? response.data : 'Error desconocido'
+    throw new Error(msg)
+  }
+  return response.data
 }

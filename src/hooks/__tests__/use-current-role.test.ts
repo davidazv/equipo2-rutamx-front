@@ -18,7 +18,7 @@ describe('useCurrentRole', () => {
   const mockReplace = vi.fn()
 
   beforeEach(() => {
-    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as ReturnType<typeof useRouter>)
+    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as unknown as ReturnType<typeof useRouter>)
   })
 
   afterEach(() => {
