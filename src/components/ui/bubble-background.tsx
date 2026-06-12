@@ -4,15 +4,15 @@ import { useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface BubbleBackgroundProps {
-  className?: string;
-  children?: React.ReactNode;
-  interactive?: boolean;
-  colors?: {
-    first: string;
-    second: string;
-    third: string;
-    fourth: string;
-    fifth: string;
+  readonly className?: string;
+  readonly children?: React.ReactNode;
+  readonly interactive?: boolean;
+  readonly colors?: {
+    readonly first: string;
+    readonly second: string;
+    readonly third: string;
+    readonly fourth: string;
+    readonly fifth: string;
   };
 }
 

@@ -34,10 +34,10 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 }
 
 interface Props {
-  user: User | null
-  onClose: () => void
-  onUpdated: (user: User) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly user: User | null
+  readonly onClose: () => void
+  readonly onUpdated: (user: User) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserEditModal({ user, onClose, onUpdated, addToast }: Props) {

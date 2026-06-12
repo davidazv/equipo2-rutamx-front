@@ -43,13 +43,13 @@ const FUEL_TYPE_LABELS: Record<FuelType, string> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 export function parsePositiveFloat(value: string): number | null {
-  const n = parseFloat(value.replace(/,/g, ''))
-  return isNaN(n) || n <= 0 ? null : n
+  const n = Number.parseFloat(value.replaceAll(/,/g, ''))
+  return Number.isNaN(n) || n <= 0 ? null : n
 }
 
 export function parsePositiveInt(value: string): number | null {
-  const n = parseInt(value, 10)
-  return isNaN(n) || n <= 0 ? null : n
+  const n = Number.parseInt(value, 10)
+  return Number.isNaN(n) || n <= 0 ? null : n
 }
 
 export function modelToBusModelForm(model: BusModel): BusModelFormData {
@@ -85,10 +85,10 @@ export function validateBusModelForm(form: BusModelFormData): BusModelFormErrors
 // ── Fields component ─────────────────────────────────────────────────────────
 
 interface BusModelFormFieldsProps {
-  form: BusModelFormData
-  setForm: React.Dispatch<React.SetStateAction<BusModelFormData>>
-  formErrors: BusModelFormErrors
-  setFormErrors: React.Dispatch<React.SetStateAction<BusModelFormErrors>>
+  readonly form: BusModelFormData
+  readonly setForm: React.Dispatch<React.SetStateAction<BusModelFormData>>
+  readonly formErrors: BusModelFormErrors
+  readonly setFormErrors: React.Dispatch<React.SetStateAction<BusModelFormErrors>>
 }
 
 export function BusModelFormFields({
@@ -111,8 +111,8 @@ export function BusModelFormFields({
     return {
       value: form.unitCostUsd,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        const digits = e.target.value.replace(/[^0-9]/g, '')
-        const formatted = digits ? parseInt(digits, 10).toLocaleString('es-MX') : ''
+        const digits = e.target.value.replace(/\D/g, '')
+        const formatted = digits ? Number.parseInt(digits, 10).toLocaleString('es-MX') : ''
         setForm((f) => ({ ...f, unitCostUsd: formatted }))
         setFormErrors((fe) => ({ ...fe, unitCostUsd: undefined }))
       },

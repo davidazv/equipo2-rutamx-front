@@ -50,8 +50,8 @@ function computeBounds(
 }
 
 interface CampaignsPanelProps {
-  routes: RouteWithShapes[];
-  onSelectionChange: (
+  readonly routes: RouteWithShapes[];
+  readonly onSelectionChange: (
     routeId: string,
     bounds: [[number, number], [number, number]] | null,
     colorMap: Map<string, string>
@@ -182,7 +182,7 @@ export function CampaignsPanel({ routes, onSelectionChange }: CampaignsPanelProp
           Modelo de Bus
         </label>
         <Select
-          value={busModelId !== null ? String(busModelId) : ""}
+          value={busModelId === null ? "" : String(busModelId)}
           onValueChange={(v) => setBusModelId(Number(v))}
         >
           <SelectTrigger>
@@ -212,7 +212,7 @@ export function CampaignsPanel({ routes, onSelectionChange }: CampaignsPanelProp
                 title="Sesión expirada"
                 description="Tu sesión ha caducado. Cierra sesión e inicia de nuevo para continuar."
                 action={
-                  <Button size="sm" onClick={() => { window.location.href = "/login"; }}>
+                  <Button size="sm" onClick={() => { globalThis.window.location.href = "/login"; }}>
                     Iniciar sesión
                   </Button>
                 }

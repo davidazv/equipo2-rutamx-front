@@ -9,16 +9,16 @@ import { getFuelSavings, type FuelSavingsResponse } from "./fuel-savings";
 
 const mockSavings: FuelSavingsResponse = {
   routeId: "TR13",
-  routeDistanceKm: 20.0,
+  routeDistanceKm: 20,
   busModelId: 1,
   busModelName: "Yutong E12PRO",
   numberOfBuses: 10,
-  fuelSavingsMXN: 3472000.0,
-  fuelSavingsLiters: 217000.0,
-  dieselReferencePriceMXN: 24.0,
+  fuelSavingsMXN: 3472000,
+  fuelSavingsLiters: 217000,
+  dieselReferencePriceMXN: 24,
   dieselConsumptionLKm: 0.35,
-  dieselCostPerYear: 5208000.0,
-  electricCostPerYear: 1736000.0,
+  dieselCostPerYear: 5208000,
+  electricCostPerYear: 1736000,
   projectionYears: 5,
 };
 

@@ -45,29 +45,31 @@ export const Default: Story = {
   ),
 };
 
+function ControlledTabsStory() {
+  const [tab, setTab] = useState("dashboard");
+  return (
+    <div className="flex flex-col gap-3 w-80">
+      <p className="text-xs text-text-muted">Active: <strong>{tab}</strong></p>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="map">Map</TabsTrigger>
+          <TabsTrigger value="roi">ROI</TabsTrigger>
+        </TabsList>
+        <TabsContent value="dashboard">
+          <p className="text-sm p-3 text-text-secondary">Dashboard view</p>
+        </TabsContent>
+        <TabsContent value="map">
+          <p className="text-sm p-3 text-text-secondary">Map view</p>
+        </TabsContent>
+        <TabsContent value="roi">
+          <p className="text-sm p-3 text-text-secondary">ROI analysis</p>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
 export const Controlled: Story = {
-  render: () => {
-    const [tab, setTab] = useState("dashboard");
-    return (
-      <div className="flex flex-col gap-3 w-80">
-        <p className="text-xs text-text-muted">Active: <strong>{tab}</strong></p>
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="map">Map</TabsTrigger>
-            <TabsTrigger value="roi">ROI</TabsTrigger>
-          </TabsList>
-          <TabsContent value="dashboard">
-            <p className="text-sm p-3 text-text-secondary">Dashboard view</p>
-          </TabsContent>
-          <TabsContent value="map">
-            <p className="text-sm p-3 text-text-secondary">Map view</p>
-          </TabsContent>
-          <TabsContent value="roi">
-            <p className="text-sm p-3 text-text-secondary">ROI analysis</p>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  },
+  render: () => <ControlledTabsStory />,
 };

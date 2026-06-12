@@ -23,15 +23,15 @@ export function useMapPageState() {
   const role = useCurrentRole();
   const allowedTabs = TAB_ACCESS[role];
 
-  const [activeTab, setActiveTabRaw] = useState<MapPageTab>(allowedTabs[0]);
+  const [activeTab, setActiveTab] = useState<MapPageTab>(allowedTabs[0]);
 
   const safeActiveTab = allowedTabs.includes(activeTab)
     ? activeTab
     : allowedTabs[0];
 
-  const setActiveTab = (tab: MapPageTab) => {
-    if (allowedTabs.includes(tab)) setActiveTabRaw(tab);
+  const setActiveTabSafe = (tab: MapPageTab) => {
+    if (allowedTabs.includes(tab)) setActiveTab(tab);
   };
 
-  return { activeTab: safeActiveTab, setActiveTab, allowedTabs };
+  return { activeTab: safeActiveTab, setActiveTab: setActiveTabSafe, allowedTabs };
 }

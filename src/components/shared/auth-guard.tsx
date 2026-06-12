@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { getToken, getRole, refreshIdToken } from "@/lib/auth";
 
 interface AuthGuardProps {
-  requiredRole?: string;
-  children: React.ReactNode;
+  readonly requiredRole?: string;
+  readonly children: React.ReactNode;
 }
 
 export function AuthGuard({ requiredRole, children }: AuthGuardProps) {

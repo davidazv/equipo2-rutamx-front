@@ -9,7 +9,7 @@ const mockRoutes: RouteResponse[] = [
     routeShortName: "13",
     routeLongName: "Trolebus Linea 13",
     routeType: 11,
-    distanceKm: 20.0,
+    distanceKm: 20,
   },
   {
     routeId: "TEST_ROUTE",
@@ -17,7 +17,7 @@ const mockRoutes: RouteResponse[] = [
     routeShortName: "T1",
     routeLongName: "Ruta de prueba",
     routeType: 3,
-    distanceKm: 15.0,
+    distanceKm: 15,
   },
 ];
 
@@ -31,7 +31,7 @@ const mockBusModels: BusModelResponse[] = [
     passengerCapacity: 85,
     unitCostUsd: 420000,
     batteryCapacityKwh: 352.08,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,

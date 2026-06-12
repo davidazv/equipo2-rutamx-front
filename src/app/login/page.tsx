@@ -33,6 +33,25 @@ const STATIONS: Station[] = [
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
+const ROLE_ROUTES: Record<string, string> = {
+  ADMIN: "/admin",
+  CEO:   "/ceo/map",
+  COO:   "/coo/map",
+  CMO:   "/cmo/map",
+};
+
+async function resolveDestination(token: string): Promise<string | null> {
+  const res = await fetch(`${API_URL}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  const me: { id: number; email: string; roleName: string; firstName: string; lastName: string } = await res.json();
+  if (!me?.roleName || !ROLE_ROUTES[me.roleName]) return null;
+  saveRole(me.roleName);
+  saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email.toLowerCase() });
+  return ROLE_ROUTES[me.roleName];
+}
+
 const LX  = 185;
 const Y0  = 55;
 const Y1  = 710;
@@ -47,39 +66,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await signIn(email, password);
-
-      let destination: string | null = null;
       const token = getToken();
-      if (token) {
-        const res = await fetch(`${API_URL}/api/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const me: { id: number; email: string; roleName: string; firstName: string; lastName: string } = await res.json();
-          const roleRoutes: Record<string, string> = {
-            ADMIN: "/admin",
-            CEO:   "/ceo/map",
-            COO:   "/coo/map",
-            CMO:   "/cmo/map",
-          };
-          if (me?.roleName && roleRoutes[me.roleName]) {
-            saveRole(me.roleName);
-            saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email.toLowerCase() });
-            destination = roleRoutes[me.roleName];
-          }
-        }
-      }
-
+      const destination = token ? await resolveDestination(token) : null;
       if (!destination) {
         throw new Error("El servicio no está disponible. Verifica que el servidor esté activo e intenta de nuevo.");
       }
-
       router.push(destination);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
@@ -144,32 +141,32 @@ export default function LoginPage() {
               {/* Crossing route lines */}
               <path d="M 15,85 L 75,85 L 185,248 L 290,310 L 390,310"
                 stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:75,cy:85},{cx:185,cy:248},{cx:290,cy:310}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#14532d" stroke="#22c55e" strokeWidth="1.5"/>
+              {[{cx:75,cy:85},{cx:185,cy:248},{cx:290,cy:310}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#14532d" stroke="#22c55e" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,290 L 100,290 L 185,338 L 380,338 L 420,300"
                 stroke="#f97316" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:100,cy:290},{cx:185,cy:338},{cx:310,cy:338}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#431407" stroke="#f97316" strokeWidth="1.5"/>
+              {[{cx:100,cy:290},{cx:185,cy:338},{cx:310,cy:338}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#431407" stroke="#f97316" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,375 L 110,410 L 185,410 L 360,410 L 430,370"
                 stroke="#3b82f6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:110,cy:410},{cx:185,cy:410},{cx:290,cy:410}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
+              {[{cx:110,cy:410},{cx:185,cy:410},{cx:290,cy:410}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,535 L 100,480 L 185,480 L 350,480 L 430,445"
                 stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:100,cy:480},{cx:185,cy:480},{cx:310,cy:480}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#3b0764" stroke="#a855f7" strokeWidth="1.5"/>
+              {[{cx:100,cy:480},{cx:185,cy:480},{cx:310,cy:480}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#3b0764" stroke="#a855f7" strokeWidth="1.5"/>
               ))}
 
               <path d="M 185,622 L 280,575 L 380,560 L 430,560"
                 stroke="#f59e0b" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:280,cy:575},{cx:380,cy:560}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#451a03" stroke="#f59e0b" strokeWidth="1.5"/>
+              {[{cx:280,cy:575},{cx:380,cy:560}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#451a03" stroke="#f59e0b" strokeWidth="1.5"/>
               ))}
 
               <path d="M 185,55 L 270,28 L 380,28 L 430,28"
@@ -273,8 +270,8 @@ export default function LoginPage() {
                       {s.label}
                     </text>
 
-                    {s.metroLines && s.metroLines.map((line, li) => (
-                      <g key={li}>
+                    {s.metroLines?.map((line, li) => (
+                      <g key={line}>
                         <rect x={LX - 28 - li * 24} y={s.y - 7} width="20" height="13" rx="3"
                           fill="#1e3a8a" stroke="#3b82f6" strokeWidth="0.7"/>
                         <text x={LX - 18 - li * 24} y={s.y + 3.5}

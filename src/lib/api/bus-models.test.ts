@@ -25,7 +25,7 @@ const SAMPLE_MODEL: BusModel = {
   passengerCapacity: 85,
   unitCostUsd: 420000,
   batteryCapacityKwh: 352.08,
-  energyConsumptionKwhKm: 1.0,
+  energyConsumptionKwhKm: 1,
   fuelConsumptionLKm: 0,
   maintenanceCostPerKm: 0.12,
   co2EmissionsGKm: 0,
@@ -192,12 +192,12 @@ describe("createBusModel", () => {
 
   it("should send provided optional fields", async () => {
     mockApiFetch.mockResolvedValueOnce(jsonResponse(SAMPLE_MODEL, 201));
-    const withOptionals = { ...input, energyConsumptionKwhKm: 1.0, co2EmissionsGKm: 0 };
+    const withOptionals = { ...input, energyConsumptionKwhKm: 1, co2EmissionsGKm: 0 };
 
     await createBusModel(withOptionals);
 
     const body = JSON.parse(mockApiFetch.mock.calls[0][1].body);
-    expect(body.energyConsumptionKwhKm).toBe(1.0);
+    expect(body.energyConsumptionKwhKm).toBe(1);
     expect(body.co2EmissionsGKm).toBe(0);
   });
 });

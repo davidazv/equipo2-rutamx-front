@@ -27,21 +27,23 @@ export const AllMet: Story = {
   args: { password: "Segura@2025!" },
 };
 
+function InteractivePasswordStory() {
+  const [password, setPassword] = useState("");
+  return (
+    <div className="w-72 space-y-2">
+      <input
+        type="text"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Escribe una contraseña..."
+        className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+      />
+      <PasswordRequirements password={password} />
+    </div>
+  );
+}
+
 export const Interactive: Story = {
   args: { password: "" },
-  render: () => {
-    const [password, setPassword] = useState("");
-    return (
-      <div className="w-72 space-y-2">
-        <input
-          type="text"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Escribe una contraseña..."
-          className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
-        />
-        <PasswordRequirements password={password} />
-      </div>
-    );
-  },
+  render: () => <InteractivePasswordStory />,
 };

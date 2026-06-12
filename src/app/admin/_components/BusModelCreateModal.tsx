@@ -24,10 +24,10 @@ import {
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface Props {
-  open: boolean
-  onClose: () => void
-  onCreated: (model: BusModel) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly open: boolean
+  readonly onClose: () => void
+  readonly onCreated: (model: BusModel) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────────

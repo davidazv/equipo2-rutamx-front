@@ -5,7 +5,7 @@ const MOCK_ROUTE_STATS = [
     agencyId: 'MB',
     avgDailyPassengers: 12000,
     co2AhorradoTonAnio: 42.5,
-    co2DieselTonAnio: 55.0,
+    co2DieselTonAnio: 55,
     co2ElectricoTonAnio: 12.5,
     distanciaKm: 20,
     headwayMinutes: 8,

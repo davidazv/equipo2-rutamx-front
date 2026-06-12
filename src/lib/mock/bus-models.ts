@@ -1,5 +1,5 @@
 // Types live in the API layer — imported here for use in stories and tests.
-import { type BusModel, type FuelType } from '@/lib/api/bus-models'
+import type { BusModel, FuelType } from '@/lib/api/bus-models'
 export type { BusModel, FuelType }
 
 // ── Seed data for Storybook stories and tests ──────────────────────────────
@@ -14,7 +14,7 @@ export const mockBusModels: BusModel[] = [
     passengerCapacity: 85,
     unitCostUsd: 420000,
     batteryCapacityKwh: 352.08,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,
@@ -28,7 +28,7 @@ export const mockBusModels: BusModel[] = [
     passengerCapacity: 85,
     unitCostUsd: 300000,
     batteryCapacityKwh: 127.51,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,

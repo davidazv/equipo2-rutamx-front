@@ -9,11 +9,11 @@ import { varyColor, ensureContrast } from "@/lib/map/color-utils";
 import { RouteCard } from "./route-card";
 
 interface RouteListProps {
-  routes: RouteWithShapes[];
-  selectedRouteId: string | null;
-  onRouteSelect: (routeId: string | null) => void;
-  onConfirm: (routeId: string) => void;
-  getRouteColor: (route: RouteWithShapes, index: number) => string;
+  readonly routes: RouteWithShapes[];
+  readonly selectedRouteId: string | null;
+  readonly onRouteSelect: (routeId: string | null) => void;
+  readonly onConfirm: (routeId: string) => void;
+  readonly getRouteColor: (route: RouteWithShapes, index: number) => string;
 }
 
 export function RouteList({
