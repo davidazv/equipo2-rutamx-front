@@ -11,7 +11,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://api.dicebear.com;
   font-src 'self';
-  connect-src 'self' ${apiUrl} https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com;
+  connect-src 'self' blob: ${apiUrl} https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com;
   worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';
