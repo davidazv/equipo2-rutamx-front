@@ -23,11 +23,10 @@ import {
   getComparativeReport,
   type ComparativeReportResponse,
 } from "@/lib/api/comparative";
+import { getUser } from "@/lib/auth";
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtMXN(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M MXN`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K MXN`;
   return `$${value.toLocaleString("es-MX")} MXN`;
 }
 
@@ -112,16 +111,94 @@ export default function ComparativeReportPage() {
 
   async function handleDownloadPdf() {
     if (!reportRef.current || !report) return;
-    const { default: JsPDF } = await import("jspdf");
-    const { default: html2canvas } = await import("html2canvas");
-    const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgWidth = pageWidth - 20;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-    pdf.save(`reporte-comparativo-${report.routeId}.pdf`);
+
+    // Chrome 116+ returns oklch/oklab from getComputedStyle; html2canvas can't parse them.
+    // Pre-convert those values to rgb on a 1×1 canvas before html2canvas clones the DOM.
+    // All CSS color functions html2canvas can't parse (includes SVG fill/stroke).
+    const COLOR_PROPS = [
+      "color", "background-color",
+      "border-top-color", "border-right-color", "border-bottom-color", "border-left-color",
+      "fill", "stroke",
+    ];
+    const MODERN_COLOR_RE = /\b(?:ok)?l(?:ab|ch)\(|color-mix\(/i;
+    const saved = new Map<Element, Array<{ prop: string; prev: string }>>();
+
+    const resolverCanvas = document.createElement("canvas");
+    resolverCanvas.width = resolverCanvas.height = 1;
+    const resolverCtx = resolverCanvas.getContext("2d");
+
+    if (resolverCtx) {
+      const toRgba = (val: string) => {
+        resolverCtx.clearRect(0, 0, 1, 1);
+        resolverCtx.fillStyle = val;
+        resolverCtx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = resolverCtx.getImageData(0, 0, 1, 1).data;
+        return a < 255 ? `rgba(${r},${g},${b},${(a / 255).toFixed(4)})` : `rgb(${r},${g},${b})`;
+      };
+
+      reportRef.current.querySelectorAll("*").forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const cs = globalThis.window.getComputedStyle(htmlEl);
+        const overrides: Array<{ prop: string; prev: string }> = [];
+        COLOR_PROPS.forEach((prop) => {
+          const val = cs.getPropertyValue(prop);
+          if (val && MODERN_COLOR_RE.test(val)) {
+            overrides.push({ prop, prev: htmlEl.style.getPropertyValue(prop) });
+            htmlEl.style.setProperty(prop, toRgba(val), "important");
+          }
+        });
+        if (overrides.length) saved.set(el, overrides);
+      });
+    }
+
+    try {
+      const { default: JsPDF } = await import("jspdf");
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+
+      // ── Metadata header ───────────────────────────────────────────────────
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("es-MX", {
+        year: "numeric", month: "long", day: "numeric",
+      });
+      const timeStr = now.toLocaleTimeString("es-MX", {
+        hour: "2-digit", minute: "2-digit",
+      });
+      const currentUser = getUser();
+
+      pdf.setFontSize(9);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("RutaMX — Reporte Comparativo Eléctrico vs Diésel", 10, 10);
+      pdf.text(`${dateStr}  ${timeStr}`, pageWidth - 10, 10, { align: "right" });
+
+      if (currentUser) {
+        pdf.text(
+          `Generado por: ${currentUser.firstName} ${currentUser.lastName}  ·  ${currentUser.email}`,
+          10, 15,
+        );
+      }
+
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(10, 18, pageWidth - 10, 18);
+      // ─────────────────────────────────────────────────────────────────────
+
+      const imgY = 21;
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 10, imgY, imgWidth, imgHeight);
+      pdf.save(`reporte-comparativo-${report.routeId}.pdf`);
+    } finally {
+      saved.forEach((overrides, el) => {
+        const htmlEl = el as HTMLElement;
+        overrides.forEach(({ prop, prev }) => {
+          if (prev) htmlEl.style.setProperty(prop, prev);
+          else htmlEl.style.removeProperty(prop);
+        });
+      });
+    }
   }
 
   // ── Catálogo cargando ────────────────────────────────────────────────────
@@ -142,7 +219,7 @@ export default function ComparativeReportPage() {
       <ErrorState
         title="Error cargando catálogos"
         description={catalogError}
-        action={<Button onClick={() => window.location.reload()}>Reintentar</Button>}
+        action={<Button onClick={() => globalThis.window.location.reload()}>Reintentar</Button>}
       />
     );
   }

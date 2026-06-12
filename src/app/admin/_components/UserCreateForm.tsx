@@ -46,10 +46,10 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 }
 
 interface Props {
-  open: boolean
-  onClose: () => void
-  onCreated: (user: User) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly open: boolean
+  readonly onClose: () => void
+  readonly onCreated: (user: User) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
@@ -102,7 +102,7 @@ export function UserCreateForm({ open, onClose, onCreated, addToast }: Props) {
       const user = await createUser({
         firstName,
         lastName,
-        email: form.email,
+        email: form.email.trim().toLowerCase(),
         role: form.role,
         password: form.password,
       })

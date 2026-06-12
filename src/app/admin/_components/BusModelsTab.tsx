@@ -65,7 +65,7 @@ const FUEL_TYPE_VARIANT: Record<FuelType, 'success' | 'default'> = {
   DIESEL: 'default',
 }
 
-function FuelTypeBadge({ fuelType }: { fuelType: FuelType }) {
+function FuelTypeBadge({ fuelType }: { readonly fuelType: FuelType }) {
   return (
     <Badge variant={FUEL_TYPE_VARIANT[fuelType]} className="gap-1">
       {FUEL_TYPE_ICONS[fuelType]}
@@ -74,7 +74,7 @@ function FuelTypeBadge({ fuelType }: { fuelType: FuelType }) {
   )
 }
 
-function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
+function ToastItem({ toast, onDismiss }: { readonly toast: Toast; readonly onDismiss: (id: string) => void }) {
   const colours: Record<Toast['type'], string> = {
     success: 'bg-surface border-success/30 text-success',
     error: 'bg-surface border-danger/30 text-danger',
@@ -111,11 +111,15 @@ export default function BusModelsTab() {
     getBusModels().then(setBusModels)
   }, [])
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now().toString()
     setToasts((prev) => [...prev, { id, message, type }])
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000)
-  }, [])
+    setTimeout(() => removeToast(id), 4000)
+  }, [removeToast])
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
@@ -152,7 +156,7 @@ export default function BusModelsTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-surface shadow-border overflow-hidden">
+      <div className="rounded-xl border border-border bg-surface shadow-border overflow-hidden" data-testid="bus-models-table">
         <Table>
           <TableHeader>
             <TableRow>

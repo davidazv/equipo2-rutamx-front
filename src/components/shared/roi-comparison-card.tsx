@@ -15,9 +15,9 @@ import {
 } from "@/lib/api/roi";
 
 interface ROIComparisonCardProps {
-  busModels: BusModelResponse[];
-  routes: RouteResponse[];
-  className?: string;
+  readonly busModels: BusModelResponse[];
+  readonly routes: RouteResponse[];
+  readonly className?: string;
 }
 
 interface ModelEstimate {
@@ -25,10 +25,7 @@ interface ModelEstimate {
   estimate: RoiEstimateResponse;
 }
 
-const fmt = (v: number) =>
-  v >= 1_000_000
-    ? `$${(v / 1_000_000).toFixed(1)}M`
-    : `$${Math.round(v).toLocaleString("es-MX")}`;
+const fmt = (v: number) => `$${Math.round(v).toLocaleString("es-MX")}`;
 
 export function ROIComparisonCard({
   busModels,
@@ -82,8 +79,6 @@ export function ROIComparisonCard({
   const best = estimates[0] ?? null;
   const maxRoi = best?.estimate.roiPercent ?? 1;
 
-  const selectedRouteData = routes.find((r) => r.routeId === selectedRoute);
-
   return (
     <Card className={cn(className)}>
       <div className="p-4 space-y-4">
@@ -113,13 +108,6 @@ export function ROIComparisonCard({
             <BusCountSelector value={buses} onChange={setBuses} />
           </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <Spinner size="sm" />
-          </div>
-        )}
-
         {/* Error */}
         {error && (
           <p className="text-xs text-destructive text-center py-4">
@@ -128,8 +116,13 @@ export function ROIComparisonCard({
         )}
 
         {/* Content */}
-        {!loading && !error && estimates.length > 0 && (
-          <>
+        {!error && estimates.length > 0 && (
+          <div className="relative">
+            {loading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-[1px]">
+                <Spinner size="sm" />
+              </div>
+            )}
             {/* Model ranking */}
             <div className="space-y-2">
               {/* Table header */}
@@ -252,7 +245,14 @@ export function ROIComparisonCard({
                 </div>
               </div>
             )}
-          </>
+          </div>
+        )}
+
+        {/* First-load spinner (no data yet) */}
+        {loading && estimates.length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <Spinner size="sm" />
+          </div>
         )}
 
         {/* Empty state */}

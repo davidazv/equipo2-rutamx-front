@@ -11,9 +11,9 @@ const TAB_LABELS: Record<MapPageTab, string> = {
 };
 
 interface MapPageTabsProps {
-  activeTab: MapPageTab;
-  allowedTabs: readonly MapPageTab[];
-  onTabChange: (tab: MapPageTab) => void;
+  readonly activeTab: MapPageTab;
+  readonly allowedTabs: readonly MapPageTab[];
+  readonly onTabChange: (tab: MapPageTab) => void;
 }
 
 export function MapPageTabs({

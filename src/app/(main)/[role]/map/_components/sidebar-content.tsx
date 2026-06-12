@@ -13,11 +13,11 @@ import { EnergyConsumptionCalculator } from "./energy-consumption-calculator";
 import { FleetDetail } from "./sidebar/fleet-detail";
 
 interface SidebarContentProps {
-  activeTab: MapPageTab;
-  routes: RouteWithShapes[];
-  selectedRouteId: string | null;
-  onRouteSelect: (routeId: string | null) => void;
-  getRouteColor: (route: RouteWithShapes, index: number) => string;
+  readonly activeTab: MapPageTab;
+  readonly routes: RouteWithShapes[];
+  readonly selectedRouteId: string | null;
+  readonly onRouteSelect: (routeId: string | null) => void;
+  readonly getRouteColor: (route: RouteWithShapes, index: number) => string;
 }
 
 export function SidebarContent({

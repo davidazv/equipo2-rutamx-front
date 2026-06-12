@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api/client'
+import { apiClient, apiFetch } from '@/lib/api/client'
 
 export type Role = 'ADMIN' | 'CEO' | 'COO' | 'CMO'
 export type UserStatus = 'ACTIVE' | 'SUSPENDED'
@@ -66,7 +66,8 @@ function normalize(raw: RawUser): User {
 export async function getUsers(): Promise<User[]> {
   const res = await apiFetch('/admin/users')
   if (!res.ok) throw new Error('FETCH_FAILED')
-  const data: RawUser[] = await res.json()
+  const json = await res.json()
+  const data: RawUser[] = json.items ?? json
   return data.map(normalize)
 }
 
@@ -137,25 +138,35 @@ export async function reinstateUser(id: number): Promise<User> {
   return normalize(raw)
 }
 
+// ── Reset password (admin) ─────────────────────────────────────────────────
+
+export async function resetUserPassword(id: number, newPassword: string): Promise<void> {
+  const res = await apiFetch(`/admin/users/${id}/reset-password`, {
+    method: 'PATCH',
+    body: JSON.stringify({ newPassword }),
+  })
+  if (res.status === 404) throw new Error('USER_NOT_FOUND')
+  if (!res.ok) throw new Error('RESET_FAILED')
+}
+
 // ── HU25 – Export users CSV ────────────────────────────────────────────────
 
 export async function exportUsersCsv(): Promise<void> {
-  const res = await apiFetch('/admin/users/export')
-  console.log('[HU25] export status:', res.status, 'headers:', [...res.headers.entries()])
-  if (!res.ok) throw new Error(`EXPORT_FAILED:${res.status}`)
+  const res = await apiClient.get<Blob>('/admin/users/export', { responseType: 'blob' })
+  if (res.status < 200 || res.status >= 300) throw new Error(`EXPORT_FAILED:${res.status}`)
 
-  const disposition = res.headers.get('Content-Disposition') ?? ''
-  const match = disposition.match(/filename="?([^"]+)"?/)
+  const disposition = (res.headers['content-disposition'] as string | undefined) ?? ''
+  const match = /filename="?([^"]+)"?/.exec(disposition)
   const today = new Date().toISOString().slice(0, 10)
   const filename = match ? match[1] : `usuarios_${today}.csv`
 
-  const blob = await res.blob()
+  const blob = res.data
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
   document.body.appendChild(a)
   a.click()
-  document.body.removeChild(a)
+  a.remove()
   URL.revokeObjectURL(url)
 }

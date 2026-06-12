@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,34 +11,30 @@ import {
 } from '@/components/ui/dialog'
 import { deleteUser } from '@/lib/api/users'
 import type { User } from '@/lib/api/users'
+import { useConfirmAction } from '@/hooks/use-confirm-action'
 
 interface Props {
-  user: User | null
-  onClose: () => void
-  onDeleted: (userId: number) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly user: User | null
+  readonly onClose: () => void
+  readonly onDeleted: (userId: number) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserDeleteModal({ user, onClose, onDeleted, addToast }: Props) {
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleConfirm() {
-    if (!user) return
-    setSubmitting(true)
-    try {
+  const { submitting, confirm: handleConfirm } = useConfirmAction({
+    action: async () => {
+      if (!user) return
       await deleteUser(user.id)
       onDeleted(user.id)
       addToast(
         `Usuario ${user.firstName} ${user.lastName} eliminado.`,
         'warning'
       )
-    } catch {
-      addToast('Ocurrió un error al eliminar el usuario.', 'error')
-    } finally {
-      setSubmitting(false)
-      onClose()
-    }
-  }
+    },
+    errorToast: { message: 'Ocurrió un error al eliminar el usuario.' },
+    addToast,
+    onClose,
+  })
 
   return (
     <Dialog

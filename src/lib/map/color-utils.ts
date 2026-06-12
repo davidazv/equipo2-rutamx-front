@@ -1,7 +1,7 @@
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    hash = Math.trunc((hash << 5) - hash + str.codePointAt(i)!);
   }
   return Math.abs(hash);
 }
@@ -9,9 +9,9 @@ function hashString(str: string): number {
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
   return [
-    parseInt(h.substring(0, 2), 16),
-    parseInt(h.substring(2, 4), 16),
-    parseInt(h.substring(4, 6), 16),
+    Number.parseInt(h.substring(0, 2), 16),
+    Number.parseInt(h.substring(2, 4), 16),
+    Number.parseInt(h.substring(4, 6), 16),
   ];
 }
 

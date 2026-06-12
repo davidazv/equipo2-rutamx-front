@@ -9,14 +9,9 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRouteStats, type RouteStatsResponse } from "@/lib/api/cmo";
 import { getAgenciesWithColors, type AgencyWithColorsResponse } from "@/lib/api/agencies";
+import { formatNumber } from "@/lib/utils";
 
 const MAX_CHART_ROUTES = 20;
-
-function formatPassengers(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toFixed(0);
-}
 
 export function CmoDashboard() {
   const [routes, setRoutes] = useState<RouteStatsResponse[]>([]);
@@ -112,7 +107,7 @@ export function CmoDashboard() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="co2-savings-chart">
       <div>
         <h1 className="text-2xl font-bold">Análisis de Rutas</h1>
         <p className="text-sm text-text-secondary">
@@ -133,7 +128,7 @@ export function CmoDashboard() {
             }
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               selectedAgency === a.agencyId
-                ? `text-white${!a.agencyColor ? " bg-primary" : ""}`
+                ? `text-white${a.agencyColor ? "" : " bg-primary"}`
                 : "bg-muted text-text-secondary hover:bg-muted/80"
             }`}
           >
@@ -168,7 +163,7 @@ export function CmoDashboard() {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold">Tablero por Ruta</h2>
           <span className="text-sm text-text-secondary">
-            {filtered.length} ruta{filtered.length !== 1 ? "s" : ""}
+            {filtered.length} ruta{filtered.length === 1 ? "" : "s"}
           </span>
         </div>
 
@@ -203,7 +198,7 @@ export function CmoDashboard() {
                       <div>
                         <p className="text-text-muted">Pasajeros/día</p>
                         <p className="font-semibold">
-                          {formatPassengers(route.avgDailyPassengers)}
+                          {formatNumber(route.avgDailyPassengers)}
                         </p>
                       </div>
                     </div>

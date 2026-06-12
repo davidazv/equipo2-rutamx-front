@@ -86,27 +86,42 @@ export function saveUser(user: CurrentUser): void {
 }
 
 export function getUser(): CurrentUser | null {
-  if (typeof window === 'undefined') return null
+  if (typeof globalThis.window === 'undefined') return null
   const raw = localStorage.getItem(USER_KEY)
   if (!raw) return null
   try { return JSON.parse(raw) } catch { return null }
 }
 
-export async function changePassword(newPassword: string): Promise<void> {
-  const token = getToken()
-  if (!token) throw new Error('No hay sesión activa')
-
-  const res = await fetch(FIREBASE_UPDATE_URL, {
+export async function changePassword(email: string, currentPassword: string, newPassword: string): Promise<void> {
+  const verifyRes = await fetch(FIREBASE_SIGN_IN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken: token, password: newPassword, returnSecureToken: true }),
+    body: JSON.stringify({ email, password: currentPassword, returnSecureToken: true }),
   })
 
-  if (!res.ok) throw new Error('Error al cambiar la contraseña. Intenta de nuevo.')
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}))
+    const code: string = err?.error?.message ?? ''
+    if (code === 'INVALID_PASSWORD' || code === 'INVALID_LOGIN_CREDENTIALS') {
+      throw new Error('La contraseña actual es incorrecta')
+    }
+    throw new Error('No se pudo verificar la contraseña actual. Intenta de nuevo.')
+  }
 
-  const data = await res.json()
-  localStorage.setItem(TOKEN_KEY, data.idToken)
-  localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+  const verifyData: FirebaseSignInResponse = await verifyRes.json()
+  const freshToken = verifyData.idToken
+
+  const updateRes = await fetch(FIREBASE_UPDATE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken: freshToken, password: newPassword, returnSecureToken: true }),
+  })
+
+  if (!updateRes.ok) throw new Error('Error al cambiar la contraseña. Intenta de nuevo.')
+
+  const updateData = await updateRes.json()
+  localStorage.setItem(TOKEN_KEY, updateData.idToken)
+  localStorage.setItem(REFRESH_TOKEN_KEY, updateData.refreshToken)
 }
 
 export function saveRole(role: string): void {
@@ -114,7 +129,7 @@ export function saveRole(role: string): void {
 }
 
 export function getRole(): string | null {
-  if (typeof window === 'undefined') return null
+  if (typeof globalThis.window === 'undefined') return null
   return localStorage.getItem(ROLE_KEY)
 }
 

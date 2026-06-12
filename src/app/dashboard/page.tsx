@@ -18,7 +18,6 @@ import {
 } from "@/lib/api/roi";
 
 function formatCurrency(value: number) {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M MXN`;
   return `$${value.toLocaleString("es-MX")} MXN`;
 }
 
@@ -63,7 +62,7 @@ export default function DashboardPage() {
         title="Error cargando dashboard"
         description={error}
         action={
-          <Button size="sm" onClick={() => window.location.reload()}>
+          <Button size="sm" onClick={() => globalThis.window.location.reload()}>
             Reintentar
           </Button>
         }
@@ -78,7 +77,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="roi-dashboard">
       <div>
         <h1 className="text-xl font-bold">Dashboard</h1>
         <p className="text-xs text-muted-foreground">

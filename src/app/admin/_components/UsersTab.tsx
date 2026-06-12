@@ -9,6 +9,7 @@ import {
   Ban,
   CheckCircle2,
   Trash2,
+  KeyRound,
   X,
 } from 'lucide-react'
 
@@ -31,6 +32,7 @@ import { UserCreateForm } from './UserCreateForm'
 import { UserEditModal } from './UserEditModal'
 import { UserDeleteModal } from './UserDeleteModal'
 import { UserSuspendModal } from './UserSuspendModal'
+import { UserResetPasswordModal } from './UserResetPasswordModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -42,8 +44,8 @@ interface Toast {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
-  return iso.slice(0, 10)
+function formatDate(iso: string | null | undefined): string {
+  return iso ? iso.slice(0, 10) : '—'
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -60,7 +62,7 @@ const STATUS_LABELS: Record<UserStatus, string> = {
   SUSPENDED: 'Suspendido',
 }
 
-function RoleBadge({ role }: { role: Role }) {
+function RoleBadge({ role }: { readonly role: Role }) {
   return (
     <Badge variant={role === 'ADMIN' ? 'default' : 'secondary'}>
       {ROLE_LABELS[role]}
@@ -68,7 +70,7 @@ function RoleBadge({ role }: { role: Role }) {
   )
 }
 
-function StatusBadge({ status }: { status: UserStatus }) {
+function StatusBadge({ status }: { readonly status: UserStatus }) {
   return (
     <Badge
       variant={status === 'ACTIVE' ? 'success' : 'warning'}
@@ -78,7 +80,7 @@ function StatusBadge({ status }: { status: UserStatus }) {
   )
 }
 
-function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
+function ToastItem({ toast, onDismiss }: { readonly toast: Toast; readonly onDismiss: (id: string) => void }) {
   const colours: Record<Toast['type'], string> = {
     success: 'bg-surface border-success/30 text-success',
     error: 'bg-surface border-danger/30 text-danger',
@@ -111,16 +113,21 @@ export default function UsersTab() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null)
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<User | null>(null)
 
   useEffect(() => {
     getUsers().then(setUsers)
   }, [])
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now().toString()
     setToasts((prev) => [...prev, { id, message, type }])
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000)
-  }, [])
+    setTimeout(() => removeToast(id), 4000)
+  }, [removeToast])
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
@@ -245,6 +252,16 @@ export default function UsersTab() {
                       <Pencil className="h-4 w-4" />
                     </Button>
 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setResetPasswordTarget(user)}
+                      title="Restablecer contraseña"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <KeyRound className="h-4 w-4" />
+                    </Button>
+
                     {user.status === 'ACTIVE' ? (
                       <Button
                         variant="ghost"
@@ -316,6 +333,12 @@ export default function UsersTab() {
         onSuspended={(updated) =>
           setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
         }
+        addToast={addToast}
+      />
+
+      <UserResetPasswordModal
+        user={resetPasswordTarget}
+        onClose={() => setResetPasswordTarget(null)}
         addToast={addToast}
       />
 

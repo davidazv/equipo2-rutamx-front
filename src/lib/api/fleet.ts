@@ -1,4 +1,5 @@
 import { apiFetch } from './client'
+import { throwResponseError } from './http-error'
 
 // ── HU12 — Bus model recommendation ──────────────────────────────────────
 
@@ -62,8 +63,7 @@ export async function getBusModelRecommendation(
     `/api/routes/${encodeURIComponent(routeId)}/bus-model-recommendation?targetOccupancy=${occ}`
   );
   if (!res.ok) {
-    const text = await res.text().catch(() => "Error desconocido");
-    throw new Error(text);
+    await throwResponseError(res);
   }
   return res.json();
 }

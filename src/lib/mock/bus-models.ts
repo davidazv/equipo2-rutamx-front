@@ -1,26 +1,9 @@
-// ── Types ──────────────────────────────────────────────────────────────────
+// Types live in the API layer — imported here for use in stories and tests.
+import type { BusModel, FuelType } from '@/lib/api/bus-models'
+export type { BusModel, FuelType }
 
-export type FuelType = 'ELECTRIC' | 'DIESEL'
+// ── Seed data for Storybook stories and tests ──────────────────────────────
 
-export interface BusModel {
-  id: number
-  name: string
-  manufacturer: string
-  fuelType: FuelType
-  autonomyKm: number
-  passengerCapacity: number
-  unitCostUsd: number
-  batteryCapacityKwh: number | null
-  energyConsumptionKwhKm: number | null
-  fuelConsumptionLKm: number | null
-  maintenanceCostPerKm: number | null
-  co2EmissionsGKm: number | null
-}
-
-// ── Seed data ──────────────────────────────────────────────────────────────
-
-// Mutable module-level state — persists for the browser session.
-// Used by admin CRUD (HU13/14/15) while those use mock data.
 export const mockBusModels: BusModel[] = [
   {
     id: 1,
@@ -31,7 +14,7 @@ export const mockBusModels: BusModel[] = [
     passengerCapacity: 85,
     unitCostUsd: 420000,
     batteryCapacityKwh: 352.08,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,
@@ -45,7 +28,7 @@ export const mockBusModels: BusModel[] = [
     passengerCapacity: 85,
     unitCostUsd: 300000,
     batteryCapacityKwh: 127.51,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,
@@ -108,7 +91,3 @@ export const mockBusModels: BusModel[] = [
   },
 ]
 
-let nextId = mockBusModels.length + 1
-export function getNextBusModelId(): number {
-  return nextId++
-}

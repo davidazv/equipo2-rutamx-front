@@ -28,6 +28,25 @@ function formatNumber(value: number, decimals = 1): string {
   });
 }
 
+function batteryColorClass(result: EnergyConsumptionResponse | null, calculating: boolean): string {
+  if (!result || calculating) return "text-muted-foreground";
+  if (result.batteryPercentAfter > 50) return "text-green-500";
+  if (result.batteryPercentAfter > 20) return "text-yellow-500";
+  return "text-red-500";
+}
+
+function calcRoundTrips(result: EnergyConsumptionResponse | null): string | number {
+  if (!result) return "--";
+  const consumptionPerTrip = 100 - result.batteryPercentAfter;
+  if (consumptionPerTrip <= 0) return "--";
+  return Math.floor(100 / (2 * consumptionPerTrip));
+}
+
+function displayValue(calculating: boolean, value: string, placeholder: string): string {
+  if (calculating) return "...";
+  return value || placeholder;
+}
+
 interface EnergyConsumptionCalculatorProps {
   selectedRouteId: string;
 }
@@ -119,7 +138,7 @@ export function EnergyConsumptionCalculator({
         title="Error cargando modelos"
         description={error}
         action={
-          <Button size="sm" onClick={() => window.location.reload()}>
+          <Button size="sm" onClick={() => globalThis.window.location.reload()}>
             Reintentar
           </Button>
         }
@@ -128,7 +147,7 @@ export function EnergyConsumptionCalculator({
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4" data-testid="simulation-form">
       <h3 className="text-sm font-semibold flex items-center gap-2">
         <Zap className="h-4 w-4 text-primary" />
         Simulador de Batería
@@ -181,15 +200,11 @@ export function EnergyConsumptionCalculator({
         </div>
       )}
 
-      <div className="space-y-3 pt-2 border-t border-border">
+      <div className="space-y-3 pt-2 border-t border-border" data-testid="simulation-result">
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Ruta</span>
           <span className="text-sm font-medium">
-            {calculating
-              ? "..."
-              : result
-                ? `${formatNumber(result.routeDistanceKm)} km`
-                : "-- km"}
+            {displayValue(calculating, result ? `${formatNumber(result.routeDistanceKm)} km` : "", "-- km")}
           </span>
         </div>
 
@@ -198,11 +213,7 @@ export function EnergyConsumptionCalculator({
             Consumo Estimado
           </span>
           <span className="text-sm font-medium text-primary">
-            {calculating
-              ? "..."
-              : result
-                ? `${formatNumber(result.estimatedConsumptionKwh)} kWh`
-                : "-- kWh"}
+            {displayValue(calculating, result ? `${formatNumber(result.estimatedConsumptionKwh)} kWh` : "", "-- kWh")}
           </span>
         </div>
 
@@ -210,22 +221,8 @@ export function EnergyConsumptionCalculator({
           <span className="text-xs text-muted-foreground">
             Bateria Restante
           </span>
-          <span
-            className={`text-sm font-medium ${
-              !result || calculating
-                ? "text-muted-foreground"
-                : result.batteryPercentAfter > 50
-                  ? "text-green-500"
-                  : result.batteryPercentAfter > 20
-                    ? "text-yellow-500"
-                    : "text-red-500"
-            }`}
-          >
-            {calculating
-              ? "..."
-              : result
-                ? `${formatNumber(result.batteryPercentAfter)}%`
-                : "--%"}
+          <span className={`text-sm font-medium ${batteryColorClass(result, calculating)}`}>
+            {calculating ? "..." : result ? `${formatNumber(result.batteryPercentAfter)}%` : "--%"}
           </span>
         </div>
 
@@ -234,11 +231,7 @@ export function EnergyConsumptionCalculator({
             Autonomia Restante
           </span>
           <span className="text-sm font-medium">
-            {calculating
-              ? "..."
-              : result
-                ? `${formatNumber(result.remainingRangeKm)} km`
-                : "-- km"}
+            {displayValue(calculating, result ? `${formatNumber(result.remainingRangeKm)} km` : "", "-- km")}
           </span>
         </div>
 
@@ -248,19 +241,7 @@ export function EnergyConsumptionCalculator({
             Viajes ida y vuelta
           </span>
           <span className="text-sm font-bold text-primary">
-            {calculating
-              ? "..."
-              : result
-                ? (() => {
-                    const consumptionPerTrip =
-                      100 - result.batteryPercentAfter;
-                    if (consumptionPerTrip <= 0) return "--";
-                    const roundTrips = Math.floor(
-                      100 / (2 * consumptionPerTrip)
-                    );
-                    return roundTrips;
-                  })()
-                : "--"}
+            {calculating ? "..." : calcRoundTrips(result)}
           </span>
         </div>
 

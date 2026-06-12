@@ -56,8 +56,8 @@ function computeBounds(
 }
 
 interface FleetPanelProps {
-  routes: RouteWithShapes[];
-  onSelectionChange: (
+  readonly routes: RouteWithShapes[];
+  readonly onSelectionChange: (
     routeId: string,
     bounds: [[number, number], [number, number]] | null,
     colorMap: Map<string, string>
@@ -170,7 +170,7 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
   }, [selectedTripData]);
 
   const peakHourDemand = useMemo(
-    () => estimatedDailyDemand != null ? Math.round(estimatedDailyDemand * PEAK_HOUR_FACTOR) : 0,
+    () => estimatedDailyDemand === null ? 0 : Math.round(estimatedDailyDemand * PEAK_HOUR_FACTOR),
     [estimatedDailyDemand]
   );
 
@@ -258,7 +258,7 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                 title="Sesión expirada"
                 description="Tu sesión ha caducado. Cierra sesión e inicia de nuevo."
                 action={
-                  <Button size="sm" onClick={() => { window.location.href = "/login"; }}>
+                  <Button size="sm" onClick={() => { globalThis.window.location.href = "/login"; }}>
                     Iniciar sesión
                   </Button>
                 }
@@ -310,8 +310,8 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                       placeholder={String(fleetCalc.gtfsOneWay)}
                       value={overrideOneWay ?? ""}
                       onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        setOverrideOneWay(!isNaN(v) && v > 0 ? v : null);
+                        const v = Number.parseInt(e.target.value, 10);
+                        setOverrideOneWay(!Number.isNaN(v) && v > 0 ? v : null);
                       }}
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -331,8 +331,8 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                       placeholder={String(fleetCalc.gtfsHeadway)}
                       value={overrideHeadway ?? ""}
                       onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        setOverrideHeadway(!isNaN(v) && v > 0 ? v : null);
+                        const v = Number.parseInt(e.target.value, 10);
+                        setOverrideHeadway(!Number.isNaN(v) && v > 0 ? v : null);
                       }}
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
                     />

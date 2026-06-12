@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/shared/auth-guard";
 export default function MainLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
   return (
     <AuthGuard>
