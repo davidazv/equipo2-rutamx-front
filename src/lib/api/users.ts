@@ -66,7 +66,8 @@ function normalize(raw: RawUser): User {
 export async function getUsers(): Promise<User[]> {
   const res = await apiFetch('/admin/users')
   if (!res.ok) throw new Error('FETCH_FAILED')
-  const data: RawUser[] = await res.json()
+  const json = await res.json()
+  const data: RawUser[] = json.items ?? json
   return data.map(normalize)
 }
 

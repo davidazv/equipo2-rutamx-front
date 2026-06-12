@@ -71,7 +71,8 @@ export default function LoginPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const users: Array<{ id: number; email: string; roleName: string; firstName: string; lastName: string }> = await res.json();
+          const json = await res.json();
+          const users: Array<{ id: number; email: string; roleName: string; firstName: string; lastName: string }> = json.items ?? json;
           const me = users.find(
             (u) => u.email.toLowerCase() === currentEmail?.toLowerCase()
           );
@@ -226,7 +227,8 @@ export default function LoginPage() {
               {/* Ping rings on transfer stations */}
               {STATIONS.filter((s) => s.isTransfer).map((s, i) => (
                 <motion.circle key={`ping-${s.id}`} cx={LX} cy={s.y}
-                  r={s.isTerminal ? 11 : 8} fill="none" stroke="#22d3ee" strokeWidth="1"
+                  initial={{ r: s.isTerminal ? 11 : 8, opacity: 0.5 }}
+                  fill="none" stroke="#22d3ee" strokeWidth="1"
                   animate={{ r: [s.isTerminal ? 11 : 8, s.isTerminal ? 26 : 22], opacity: [0.5, 0] }}
                   transition={{ duration: 2.8, ease: "easeOut", repeat: Infinity, delay: i * 0.6, repeatDelay: 0.4 }}
                 />
@@ -245,7 +247,9 @@ export default function LoginPage() {
                     style={{ cursor: "pointer" }}
                   >
                     {isHov && (
-                      <motion.circle cx={LX} cy={s.y} r={r} fill="none" stroke="#7dd3fc" strokeWidth="1.5"
+                      <motion.circle cx={LX} cy={s.y}
+                        initial={{ r, opacity: 0.8 }}
+                        fill="none" stroke="#7dd3fc" strokeWidth="1.5"
                         animate={{ r: [r, r + 18], opacity: [0.8, 0] }}
                         transition={{ duration: 0.6, repeat: Infinity }}
                       />
