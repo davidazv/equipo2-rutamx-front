@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Crown, Info, Leaf } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { BusCountSelector } from "@/components/shared/bus-count-selector";
 import { cn } from "@/lib/utils";
+import { buildColorMap } from "@/lib/bus-model-colors";
 import {
   estimateRoi,
   type BusModelResponse,
@@ -34,6 +35,11 @@ export function ROIComparisonCard({
   routes,
   className,
 }: ROIComparisonCardProps) {
+  const colorMap = useMemo(
+    () => buildColorMap(busModels.map((m) => m.id)),
+    [busModels]
+  );
+
   const [selectedRoute, setSelectedRoute] = useState(
     routes[0]?.routeId ?? ""
   );
@@ -144,31 +150,29 @@ export function ROIComparisonCard({
                   maxRoi > 0
                     ? (estimate.roiPercent / maxRoi) * 100
                     : 0;
+                const color = colorMap.get(model.id);
 
                 return (
                   <div
                     key={model.id}
-                    className={cn(
-                      "rounded-lg border p-2 transition-colors",
-                      isBest
-                        ? "border-primary/40 bg-primary/5"
-                        : "border-border/50 bg-muted/30"
-                    )}
+                    className="rounded-lg border p-2 transition-colors border-border/50 bg-muted/30"
+                    style={color ? { borderLeftWidth: 3, borderLeftColor: color.hex } : undefined}
                   >
                     {/* Mobile + Desktop layout */}
                     <div className="sm:grid grid-cols-[1fr_60px_70px_80px_80px] gap-2 items-center">
                       {/* Model name + bar */}
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
+                          {color && (
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                          )}
                           {isBest && (
                             <Crown className="h-3.5 w-3.5 text-amber-500" />
                           )}
-                          <span
-                            className={cn(
-                              "text-sm font-medium",
-                              isBest && "text-primary"
-                            )}
-                          >
+                          <span className="text-sm font-medium">
                             {model.manufacturer} {model.name}
                           </span>
                           <div className="relative group">
@@ -183,11 +187,11 @@ export function ROIComparisonCard({
                         </div>
                         <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={cn(
-                              "h-full rounded-full transition-all duration-500",
-                              isBest ? "bg-primary" : "bg-primary/40"
-                            )}
-                            style={{ width: `${barWidth}%` }}
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${barWidth}%`,
+                              backgroundColor: color?.hex ?? "var(--color-primary)",
+                            }}
                           />
                         </div>
                       </div>
@@ -195,12 +199,8 @@ export function ROIComparisonCard({
                       {/* Metrics - stacked on mobile, inline on desktop */}
                       <div className="flex sm:contents gap-3 mt-2 sm:mt-0 flex-wrap">
                         <span
-                          className={cn(
-                            "text-sm font-bold tabular-nums text-right",
-                            isBest
-                              ? "text-primary"
-                              : "text-foreground"
-                          )}
+                          className="text-sm font-bold tabular-nums text-right"
+                          style={{ color: color?.hex }}
                         >
                           {estimate.roiPercent.toFixed(1)}%
                         </span>
@@ -218,7 +218,6 @@ export function ROIComparisonCard({
                         </span>
                       </div>
                     </div>
-
                   </div>
                 );
               })}
