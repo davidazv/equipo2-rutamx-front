@@ -65,8 +65,36 @@ interface StationMarkerProps {
   readonly onLeave: () => void;
 }
 
+function stationRadius(s: Station): number {
+  if (s.isTerminal) return 11;
+  if (s.isTransfer) return 8;
+  return 6;
+}
+
+function stationDotFill(isHov: boolean, s: Station): string {
+  if (isHov) return "#0ea5e9";
+  if (s.isTerminal) return "#075985";
+  return "#0c4a6e";
+}
+
+function labelFill(isHov: boolean, s: Station): string {
+  if (isHov) return "#e2e8f0";
+  if (s.isTransfer || s.isTerminal) return "#94a3b8";
+  return "#64748b";
+}
+
+function labelFontSize(s: Station): string {
+  if (s.isTerminal) return "11";
+  if (s.isTransfer) return "10";
+  return "9";
+}
+
+function labelFontWeight(s: Station): string {
+  return s.isTerminal || s.isTransfer ? "600" : "400";
+}
+
 function StationMarker({ s, isHov, onEnter, onLeave }: StationMarkerProps) {
-  const r = s.isTerminal ? 11 : s.isTransfer ? 8 : 6;
+  const r = stationRadius(s);
   const showAbove = s.y > 580;
   return (
     <g key={s.id} onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ cursor: "pointer" }}>
@@ -84,7 +112,7 @@ function StationMarker({ s, isHov, onEnter, onLeave }: StationMarkerProps) {
         />
       )}
       <circle cx={LX} cy={s.y} r={r}
-        fill={isHov ? "#0ea5e9" : s.isTerminal ? "#075985" : "#0c4a6e"}
+        fill={stationDotFill(isHov, s)}
         stroke={isHov ? "#e0f2fe" : "#38bdf8"}
         strokeWidth={s.isTerminal ? 2.5 : 2}
         filter={isHov ? "url(#gn)" : undefined}
@@ -94,9 +122,9 @@ function StationMarker({ s, isHov, onEnter, onLeave }: StationMarkerProps) {
         fill={isHov ? "white" : "#bae6fd"} style={{ transition: "fill 0.2s" }}
       />
       <text x={LX + 20} y={s.y + 4}
-        fill={isHov ? "#e2e8f0" : s.isTransfer || s.isTerminal ? "#94a3b8" : "#64748b"}
-        fontSize={s.isTerminal ? "11" : s.isTransfer ? "10" : "9"}
-        fontWeight={s.isTerminal || s.isTransfer ? "600" : "400"}
+        fill={labelFill(isHov, s)}
+        fontSize={labelFontSize(s)}
+        fontWeight={labelFontWeight(s)}
         fontFamily="sans-serif" style={{ transition: "fill 0.2s" }}
       >
         {s.label}
