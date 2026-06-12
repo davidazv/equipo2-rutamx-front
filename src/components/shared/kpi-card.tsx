@@ -2,10 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ReactNode } from "react";
 
 interface KpiCardProps {
-  title: string;
-  value: string | number;
-  sub?: string;
-  icon?: ReactNode;
+  readonly title: string;
+  readonly value: string | number;
+  readonly sub?: string;
+  readonly icon?: ReactNode;
 }
 
 export function KpiCard({ title, value, sub, icon }: KpiCardProps) {

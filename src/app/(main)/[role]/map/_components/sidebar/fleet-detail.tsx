@@ -14,8 +14,8 @@ import {
 import { formatNumber } from "@/lib/utils";
 
 interface FleetDetailProps {
-  routeId: string;
-  routeDistanceKm: number;
+  readonly routeId: string;
+  readonly routeDistanceKm: number;
 }
 
 export function FleetDetail({
@@ -62,7 +62,7 @@ export function FleetDetail({
         title="Error cargando modelos"
         description={error}
         action={
-          <Button size="sm" onClick={() => window.location.reload()}>
+          <Button size="sm" onClick={() => globalThis.window.location.reload()}>
             Reintentar
           </Button>
         }

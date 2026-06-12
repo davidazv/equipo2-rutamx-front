@@ -8,7 +8,7 @@ const MOCK_ELECTRIC_MODELS = [
     passengerCapacity: 85,
     unitCostUsd: 420000,
     batteryCapacityKwh: 352,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,
@@ -37,7 +37,7 @@ const MOCK_AGENCIES_WITH_COLORS = [
 
 const MOCK_ENERGY_RESULT = {
   routeId: 'TR13',
-  routeDistanceKm: 20.0,
+  routeDistanceKm: 20,
   busModelId: 1,
   busModelName: 'E12PRO',
   occupancyPercent: 50,

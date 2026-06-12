@@ -4,9 +4,9 @@ import { Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BusCountSelectorProps {
-  value: number;
-  onChange: (value: number) => void;
-  presets?: number[];
+  readonly value: number;
+  readonly onChange: (value: number) => void;
+  readonly presets?: number[];
 }
 
 export function BusCountSelector({
@@ -23,7 +23,7 @@ export function BusCountSelector({
           min={1}
           max={200}
           value={value}
-          onChange={(e) => onChange(Math.max(1, parseInt(e.target.value) || 1))}
+          onChange={(e) => onChange(Math.max(1, Number.parseInt(e.target.value) || 1))}
           className="w-16 text-xs bg-muted border border-border rounded-md px-2 py-1.5"
         />
         {presets.map((n) => (

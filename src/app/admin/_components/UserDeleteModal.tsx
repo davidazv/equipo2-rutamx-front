@@ -14,10 +14,10 @@ import type { User } from '@/lib/api/users'
 import { useConfirmAction } from '@/hooks/use-confirm-action'
 
 interface Props {
-  user: User | null
-  onClose: () => void
-  onDeleted: (userId: number) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly user: User | null
+  readonly onClose: () => void
+  readonly onDeleted: (userId: number) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserDeleteModal({ user, onClose, onDeleted, addToast }: Props) {

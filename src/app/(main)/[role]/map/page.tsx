@@ -20,7 +20,31 @@ import { SidebarContent } from "./_components/sidebar-content";
 import { CampaignsPanel } from "./_components/campaigns-panel";
 import { FleetPanel } from "./_components/fleet-panel";
 import { AgencyFilterBar } from "./_components/agency-filter-bar";
-import { useMapPageState } from "./_components/use-map-page-state";
+import { useMapPageState, type MapPageTab } from "./_components/use-map-page-state";
+
+interface MapTabProps {
+  activeTab: MapPageTab;
+  campaignRouteId: string | null;
+  fleetRouteId: string | null;
+  selectedRouteId: string | null;
+  campaignBounds: [[number, number], [number, number]] | null;
+  fleetBounds: [[number, number], [number, number]] | null;
+  getCampaignRouteColor: (route: RouteWithShapes, idx: number) => string;
+  getFleetRouteColor: (route: RouteWithShapes, idx: number) => string;
+  resolveColor: (route: RouteWithShapes, idx: number) => string;
+}
+
+function resolveMapProps(p: MapTabProps) {
+  const isCampaign = p.activeTab === "campanas-ambientales";
+  const isFleet = p.activeTab === "optimizacion-flota";
+  return {
+    selectedRouteId: isCampaign ? p.campaignRouteId : isFleet ? p.fleetRouteId : p.selectedRouteId,
+    targetBounds: isCampaign ? p.campaignBounds : isFleet ? p.fleetBounds : null,
+    getRouteColor: isCampaign ? p.getCampaignRouteColor : isFleet ? p.getFleetRouteColor : p.resolveColor,
+    unselectedOpacity: isCampaign ? 0.5 : isFleet ? 0.3 : undefined,
+    unselectedLineWidth: isCampaign ? 2 : isFleet ? 1 : undefined,
+  };
+}
 
 export default function MapPage() {
   const { activeTab, setActiveTab, allowedTabs } = useMapPageState();
@@ -155,40 +179,17 @@ export default function MapPage() {
   const isNonMapTab =
     activeTab === "campanas-ambientales" || activeTab === "optimizacion-flota";
 
-  const mapSelectedRouteId =
-    activeTab === "campanas-ambientales"
-      ? campaignRouteId
-      : activeTab === "optimizacion-flota"
-        ? fleetRouteId
-        : selectedRouteId;
-
-  const mapTargetBounds =
-    activeTab === "campanas-ambientales"
-      ? campaignBounds
-      : activeTab === "optimizacion-flota"
-        ? fleetBounds
-        : null;
-
-  const mapGetRouteColor =
-    activeTab === "campanas-ambientales"
-      ? getCampaignRouteColor
-      : activeTab === "optimizacion-flota"
-        ? getFleetRouteColor
-        : resolveColor;
-
-  const mapUnselectedOpacity =
-    activeTab === "campanas-ambientales"
-      ? 0.5
-      : activeTab === "optimizacion-flota"
-        ? 0.3
-        : undefined;
-
-  const mapUnselectedLineWidth =
-    activeTab === "campanas-ambientales"
-      ? 2
-      : activeTab === "optimizacion-flota"
-        ? 1
-        : undefined;
+  const mapProps = resolveMapProps({
+    activeTab,
+    campaignRouteId,
+    fleetRouteId,
+    selectedRouteId,
+    campaignBounds,
+    fleetBounds,
+    getCampaignRouteColor,
+    getFleetRouteColor,
+    resolveColor,
+  });
 
   if (loading) {
     return (
@@ -206,7 +207,7 @@ export default function MapPage() {
           title="Error cargando rutas"
           description={error}
           action={
-            <Button size="sm" onClick={() => window.location.reload()}>
+            <Button size="sm" onClick={() => globalThis.window.location.reload()}>
               Reintentar
             </Button>
           }
@@ -274,13 +275,13 @@ export default function MapPage() {
         <div className="flex-1 rounded-lg overflow-hidden border border-border min-h-0">
           <MapContainer
             routes={filteredRoutes}
-            selectedRouteId={mapSelectedRouteId}
-            getRouteColor={mapGetRouteColor}
+            selectedRouteId={mapProps.selectedRouteId}
+            getRouteColor={mapProps.getRouteColor}
             visibleAgencyIds={visibleAgencyIds}
             agencies={agencies}
-            targetBounds={mapTargetBounds}
-            unselectedOpacity={mapUnselectedOpacity}
-            unselectedLineWidth={mapUnselectedLineWidth}
+            targetBounds={mapProps.targetBounds}
+            unselectedOpacity={mapProps.unselectedOpacity}
+            unselectedLineWidth={mapProps.unselectedLineWidth}
           />
         </div>
       </div>

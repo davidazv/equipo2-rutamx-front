@@ -86,7 +86,7 @@ export function saveUser(user: CurrentUser): void {
 }
 
 export function getUser(): CurrentUser | null {
-  if (typeof window === 'undefined') return null
+  if (typeof globalThis.window === 'undefined') return null
   const raw = localStorage.getItem(USER_KEY)
   if (!raw) return null
   try { return JSON.parse(raw) } catch { return null }
@@ -129,7 +129,7 @@ export function saveRole(role: string): void {
 }
 
 export function getRole(): string | null {
-  if (typeof window === 'undefined') return null
+  if (typeof globalThis.window === 'undefined') return null
   return localStorage.getItem(ROLE_KEY)
 }
 

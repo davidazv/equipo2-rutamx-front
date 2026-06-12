@@ -3,10 +3,10 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ErrorStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  icon?: React.ReactNode;
+  readonly title?: string;
+  readonly description?: string;
+  readonly action?: React.ReactNode;
+  readonly icon?: React.ReactNode;
 }
 
 function ErrorState({

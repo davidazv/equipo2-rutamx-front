@@ -35,7 +35,7 @@ export default function ConfiguracionPage() {
     setLastName(u.lastName);
   }, [router]);
 
-  async function handleProfileSave(e: React.FormEvent) {
+  async function handleProfileSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user) return;
     setProfileLoading(true);
@@ -62,7 +62,7 @@ export default function ConfiguracionPage() {
     }
   }
 
-  async function handlePasswordSave(e: React.FormEvent) {
+  async function handlePasswordSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user) return;
     setPassMsg(null);

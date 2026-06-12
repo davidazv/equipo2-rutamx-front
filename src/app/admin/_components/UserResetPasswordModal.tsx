@@ -15,9 +15,9 @@ import { resetUserPassword } from '@/lib/api/users'
 import type { User } from '@/lib/api/users'
 
 interface Props {
-  user: User | null
-  onClose: () => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly user: User | null
+  readonly onClose: () => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserResetPasswordModal({ user, onClose, addToast }: Props) {

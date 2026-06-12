@@ -62,7 +62,7 @@ export default function DashboardPage() {
         title="Error cargando dashboard"
         description={error}
         action={
-          <Button size="sm" onClick={() => window.location.reload()}>
+          <Button size="sm" onClick={() => globalThis.window.location.reload()}>
             Reintentar
           </Button>
         }

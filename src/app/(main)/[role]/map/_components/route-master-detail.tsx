@@ -10,13 +10,13 @@ interface SelectedItem {
 }
 
 interface RouteMasterDetailProps {
-  title: string;
-  subtitle?: string;
-  titleIcon: ReactNode;
-  selectedItem: SelectedItem | null;
-  onBack: () => void;
-  listContent: ReactNode;
-  detailContent: ReactNode;
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly titleIcon: ReactNode;
+  readonly selectedItem: SelectedItem | null;
+  readonly onBack: () => void;
+  readonly listContent: ReactNode;
+  readonly detailContent: ReactNode;
 }
 
 export function RouteMasterDetail({

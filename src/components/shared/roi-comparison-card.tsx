@@ -14,9 +14,9 @@ import {
 } from "@/lib/api/roi";
 
 interface ROIComparisonCardProps {
-  busModels: BusModelResponse[];
-  routes: RouteResponse[];
-  className?: string;
+  readonly busModels: BusModelResponse[];
+  readonly routes: RouteResponse[];
+  readonly className?: string;
 }
 
 interface ModelEstimate {
@@ -72,8 +72,6 @@ export function ROIComparisonCard({
 
   const best = estimates[0] ?? null;
   const maxRoi = best?.estimate.roiPercent ?? 1;
-
-  const selectedRouteData = routes.find((r) => r.routeId === selectedRoute);
 
   return (
     <Card className={cn(className)}>

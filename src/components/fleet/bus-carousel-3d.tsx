@@ -56,7 +56,7 @@ function getGlbForModel(model: BusModel): string | null {
   return null;
 }
 
-function BusModel3D({ glbPath }: { glbPath: string }) {
+function BusModel3D({ glbPath }: { readonly glbPath: string }) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF(glbPath);
 
@@ -81,7 +81,7 @@ for (const glb of ALL_GLB_FILES) {
   useGLTF.preload(glb);
 }
 
-function CarouselScene({ glbPath }: { glbPath: string }) {
+function CarouselScene({ glbPath }: { readonly glbPath: string }) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ function CarouselScene({ glbPath }: { glbPath: string }) {
 }
 
 interface BusCarousel3DProps {
-  models: BusModel[];
+  readonly models: BusModel[];
 }
 
 export function BusCarousel3D({ models }: BusCarousel3DProps) {
@@ -149,9 +149,9 @@ export function BusCarousel3D({ models }: BusCarousel3DProps) {
         </button>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-          {models.map((_, index) => (
+          {models.map((model, index) => (
             <button
-              key={index}
+              key={model.id}
               onClick={() => setCurrentIndex(index)}
               className={`h-2 rounded-full transition-all ${
                 index === currentIndex ? "w-8 bg-primary-light" : "w-2 bg-primary-light/20"

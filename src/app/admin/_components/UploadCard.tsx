@@ -14,13 +14,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { uploadCsv, type CsvImportResult } from "@/lib/api/upload";
 
 interface UploadCardProps {
-  tableName: string;
-  displayName: string;
-  rowCount: number;
-  uploadedAt: string | null;
-  onUploaded: (tableName: string, rowCount: number) => void;
-  accept?: string;
-  sourceUrl?: string;
+  readonly tableName: string;
+  readonly displayName: string;
+  readonly rowCount: number;
+  readonly uploadedAt: string | null;
+  readonly onUploaded: (tableName: string, rowCount: number) => void;
+  readonly accept?: string;
+  readonly sourceUrl?: string;
+}
+
+function uploadButtonLabel(loading: boolean, hasData: boolean): string {
+  if (loading) return "Cargando...";
+  return hasData ? "Actualizar" : "Subir";
 }
 
 function formatDate(iso: string): string {
@@ -78,10 +83,10 @@ export default function UploadCard({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             {displayName}
-            {result && result.errors.length === 0 && (
+            {result?.errors.length === 0 && (
               <CheckCircle className="h-4 w-4 text-green-500" />
             )}
-            {(error || (result && result.errors.length > 0)) && (
+            {(error || (result?.errors.length ?? 0) > 0) && (
               <AlertCircle className="h-4 w-4 text-yellow-500" />
             )}
           </CardTitle>
@@ -127,14 +132,8 @@ export default function UploadCard({
             disabled={loading || !fileSelected}
             size="sm"
           >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : hasData ? (
-              <RefreshCw className="h-4 w-4" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-            {loading ? "Cargando..." : hasData ? "Actualizar" : "Subir"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : hasData ? <RefreshCw className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
+            {uploadButtonLabel(loading, hasData)}
           </Button>
         </div>
 
@@ -154,7 +153,7 @@ export default function UploadCard({
                 </p>
                 <ul className="list-disc pl-4 text-xs text-muted-foreground max-h-32 overflow-y-auto">
                   {result.errors.map((err, i) => (
-                    <li key={i}>{err}</li>
+                    <li key={`err-${i}-${err.slice(0, 20)}`}>{err}</li>
                   ))}
                 </ul>
               </div>

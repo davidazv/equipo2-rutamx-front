@@ -64,25 +64,27 @@ export const Destructive: Story = {
   ),
 };
 
+function ControlledDialogStory() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <p className="text-xs text-text-muted">Open: <strong>{String(open)}</strong></p>
+      <Button onClick={() => setOpen(true)}>Open Controlled</Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Controlled Dialog</DialogTitle>
+            <DialogDescription>This dialog is controlled externally.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export const Controlled: Story = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-xs text-text-muted">Open: <strong>{String(open)}</strong></p>
-        <Button onClick={() => setOpen(true)}>Open Controlled</Button>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Controlled Dialog</DialogTitle>
-              <DialogDescription>This dialog is controlled externally.</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button onClick={() => setOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  },
+  render: () => <ControlledDialogStory />,
 };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  Bus, Battery, Zap, Fuel, DollarSign, Users, Lock, Leaf,
+  Bus, Battery, Zap, DollarSign, Users, Lock, Leaf,
   Ruler, Clock, Gauge, Timer,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

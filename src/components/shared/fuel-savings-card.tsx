@@ -23,9 +23,9 @@ import {
 import type { BusModelResponse, RouteResponse } from "@/lib/api/roi";
 
 interface FuelSavingsCardProps {
-  busModels: BusModelResponse[];
-  routes: RouteResponse[];
-  className?: string;
+  readonly busModels: BusModelResponse[];
+  readonly routes: RouteResponse[];
+  readonly className?: string;
 }
 
 function exportCSV(data: FuelSavingsResponse, tab: string) {
@@ -278,7 +278,6 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             )}
-          <>
             {/* KPI summary row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="p-3 rounded-lg bg-muted">
@@ -408,7 +407,6 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
                 </div>
               </Tabs.Content>
             </Tabs.Root>
-          </>
           </div>
         )}
       </CardContent>

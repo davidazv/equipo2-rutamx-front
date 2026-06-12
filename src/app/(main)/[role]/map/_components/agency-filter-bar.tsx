@@ -11,9 +11,9 @@ function getAgencyColor(agency: AgencyWithColorsResponse): string {
 }
 
 interface AgencyFilterBarProps {
-  agencies: AgencyWithColorsResponse[];
-  activeAgencyIds: Set<string>;
-  onToggle: (agencyId: string) => void;
+  readonly agencies: AgencyWithColorsResponse[];
+  readonly activeAgencyIds: Set<string>;
+  readonly onToggle: (agencyId: string) => void;
 }
 
 export function AgencyFilterBar({
