@@ -2,7 +2,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci # nosonar - postinstall scripts required by Next.js/esbuild platform binaries
 
 # Stage 2: Build
 FROM node:20-alpine AS build

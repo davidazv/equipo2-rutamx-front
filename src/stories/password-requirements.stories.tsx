@@ -20,11 +20,11 @@ export const Empty: Story = {
 };
 
 export const Partial: Story = {
-  args: { password: "Hola123" },
+  args: { password: "Hola123" }, // NOSONAR - example value for Storybook demo
 };
 
 export const AllMet: Story = {
-  args: { password: "Segura@2025!" },
+  args: { password: "Segura@2025!" }, // NOSONAR - example value for Storybook demo
 };
 
 function InteractivePasswordStory() {
