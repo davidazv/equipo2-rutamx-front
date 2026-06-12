@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Download, Fuel, DollarSign, Gauge, Calendar, Loader2 } from "lucide-react";
 import { BusCountSelector } from "@/components/shared/bus-count-selector";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BarChart } from "@/components/charts/bar-chart";
 import { LineChart } from "@/components/charts/line-chart";
 import { cn } from "@/lib/utils";
+import { buildColorMap } from "@/lib/bus-model-colors";
 import {
   getFuelSavings,
   type FuelSavingsResponse,
@@ -41,6 +42,12 @@ function exportCSV(data: FuelSavingsResponse, tab: string) {
 
 export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCardProps) {
   const electricModels = busModels.filter((m) => m.fuelType === "ELECTRIC");
+
+  const colorMap = useMemo(
+    () => buildColorMap(busModels.map((m) => m.id)),
+    [busModels]
+  );
+
   const [selectedRoute, setSelectedRoute] = useState(routes[0]?.routeId ?? "");
   const [selectedModel, setSelectedModel] = useState<number | null>(electricModels[0]?.id ?? null);
   const [buses, setBuses] = useState(10);
@@ -69,6 +76,8 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const selectedColor = selectedModel !== null ? colorMap.get(selectedModel) : undefined;
 
   async function handleExportPdf() {
     if (!data || exportingPdf) return;
@@ -186,9 +195,9 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
     }
   }
 
-  const monthlyChartData = data ? buildMonthlyChartData(data) : null;
-  const annualChartData = data ? buildAnnualChartData(data) : null;
-  const accumulatedChartData = data ? buildAccumulatedChartData(data) : null;
+  const monthlyChartData = data ? buildMonthlyChartData(data, selectedColor) : null;
+  const annualChartData = data ? buildAnnualChartData(data, selectedColor) : null;
+  const accumulatedChartData = data ? buildAccumulatedChartData(data, selectedColor) : null;
 
   return (
     <Card className={cn(className)}>
@@ -242,6 +251,13 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
           </div>
           <div className="flex-1 min-w-[140px]">
             <label className="text-xs text-muted-foreground block mb-1">Modelo electrico</label>
+            <div className="flex items-center gap-1.5">
+              {selectedColor && (
+                <span
+                  className="inline-block h-3 w-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: selectedColor.hex }}
+                />
+              )}
             <select
               value={selectedModel ?? ""}
               onChange={(e) => setSelectedModel(Number(e.target.value))}
@@ -252,7 +268,9 @@ export function FuelSavingsCard({ busModels, routes, className }: FuelSavingsCar
                   {m.manufacturer} {m.name}
                 </option>
               ))}
+
             </select>
+            </div>
           </div>
           <BusCountSelector value={buses} onChange={setBuses} />
         </div>
