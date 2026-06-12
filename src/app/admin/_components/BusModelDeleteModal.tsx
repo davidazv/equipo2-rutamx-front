@@ -16,10 +16,10 @@ import { useConfirmAction } from '@/hooks/use-confirm-action'
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface Props {
-  model: BusModel | null
-  onClose: () => void
-  onDeleted: (modelId: number) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly model: BusModel | null
+  readonly onClose: () => void
+  readonly onDeleted: (modelId: number) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 // ── Component ──────────────────────────────────────────────────────────────

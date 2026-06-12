@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  Bus, Battery, Zap, Fuel, DollarSign, Users, Lock, Leaf,
+  Bus, Battery, Zap, DollarSign, Users, Lock, Leaf,
   Ruler, Clock, Gauge, Timer,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { LineChart } from "@/components/charts/line-chart";
 import { BusCarousel3D } from "@/components/fleet/bus-carousel-3d";
 import { getBusModels } from "@/lib/api/bus-models";
 import type { BusModel } from "@/lib/api/bus-models";
+import { getBusModelColor } from "@/lib/bus-model-colors";
 import { getRouteTravelTimes } from "@/lib/api/energy";
 import type { RouteTimeComparison } from "@/lib/api/energy";
 import { getAgencies } from "@/lib/api/agencies";
@@ -169,15 +170,20 @@ export default function FleetPage() {
     return { count: models.length, avgAutonomy, avgConsumption, totalCapacity };
   }, [models]);
 
+  const modelColors = useMemo(
+    () => models.map((_, i) => getBusModelColor(i)),
+    [models]
+  );
+
   const comparisonData = useMemo(() => ({
     labels: models.map((b) => `${b.manufacturer} ${b.name}`),
-    datasets: [{ label: "Autonomía (km)", data: models.map((b) => b.autonomyKm), backgroundColor: "#3B82F6" }],
-  }), [models]);
+    datasets: [{ label: "Autonomía (km)", data: models.map((b) => b.autonomyKm), backgroundColor: modelColors.map((c) => c.bar) }],
+  }), [models, modelColors]);
 
   const capacityData = useMemo(() => ({
     labels: models.map((b) => b.name),
-    datasets: [{ label: "Capacidad de Pasajeros", data: models.map((b) => b.passengerCapacity), backgroundColor: "#22C55E" }],
-  }), [models]);
+    datasets: [{ label: "Capacidad de Pasajeros", data: models.map((b) => b.passengerCapacity), backgroundColor: modelColors.map((c) => c.bar) }],
+  }), [models, modelColors]);
 
   // ── Travel-times chart data ───────────────────────────────────────────
 
@@ -331,16 +337,24 @@ export default function FleetPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {models.map((bus) => (
+                    {models.map((bus, i) => {
+                      const color = getBusModelColor(i);
+                      return (
                       <TableRow
                         key={bus.id}
-                        className={cn(
-                          "cursor-pointer transition-colors",
-                          selectedId === bus.id && "bg-primary/10"
-                        )}
+                        className="cursor-pointer transition-colors"
+                        style={selectedId === bus.id ? { backgroundColor: `${color.hex}18` } : undefined}
                         onClick={() => setSelectedId(selectedId === bus.id ? null : bus.id)}
                       >
-                        <TableCell className="font-medium">{bus.name}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            {bus.name}
+                          </div>
+                        </TableCell>
                         <TableCell>{bus.manufacturer}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{FUEL_LABELS[bus.fuelType]}</Badge>
@@ -351,7 +365,8 @@ export default function FleetPage() {
                         <TableCell className="text-right">{bus.passengerCapacity} pas.</TableCell>
                         <TableCell className="text-right">${fmt(bus.unitCostUsd / 1000)}K</TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Spinner } from "@/components/ui/spinner";
 
 interface ChartWrapperProps {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-  loading?: boolean;
-  className?: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly children: React.ReactNode;
+  readonly loading?: boolean;
+  readonly className?: string;
 }
 
 export function ChartWrapper({

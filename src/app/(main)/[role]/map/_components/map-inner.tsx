@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import Map, { Source, Layer, NavigationControl, type MapRef } from "react-map-gl/mapbox";
-import type { ViewState } from "react-map-gl/mapbox";
+import Map, { Source, Layer, NavigationControl, type MapRef, type ViewState } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MEXICO_CITY_CENTER, DEFAULT_ZOOM } from "@/constants/map";
 import type { RouteWithShapes } from "@/lib/api/energy";
@@ -12,15 +11,15 @@ import { varyColor, blendWithWhite } from "@/lib/map/color-utils";
 import { MapLegend } from "./map-legend";
 
 interface MapInnerProps {
-  routes: RouteWithShapes[];
-  selectedRouteId: string | null;
-  mapboxToken: string;
-  getRouteColor: (route: RouteWithShapes, index: number) => string;
-  visibleAgencyIds: string[];
-  agencies: AgencyWithColorsResponse[];
-  targetBounds?: [[number, number], [number, number]] | null;
-  unselectedOpacity?: number;
-  unselectedLineWidth?: number;
+  readonly routes: RouteWithShapes[];
+  readonly selectedRouteId: string | null;
+  readonly mapboxToken: string;
+  readonly getRouteColor: (route: RouteWithShapes, index: number) => string;
+  readonly visibleAgencyIds: string[];
+  readonly agencies: AgencyWithColorsResponse[];
+  readonly targetBounds?: [[number, number], [number, number]] | null;
+  readonly unselectedOpacity?: number;
+  readonly unselectedLineWidth?: number;
 }
 
 export function MapInner({

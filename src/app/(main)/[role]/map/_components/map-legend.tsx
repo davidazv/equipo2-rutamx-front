@@ -13,8 +13,8 @@ function getAgencyDisplayColor(agency: AgencyWithColorsResponse): string {
 }
 
 interface MapLegendProps {
-  visibleAgencyIds: string[];
-  agencies: AgencyWithColorsResponse[];
+  readonly visibleAgencyIds: string[];
+  readonly agencies: AgencyWithColorsResponse[];
 }
 
 export function MapLegend({ visibleAgencyIds, agencies }: MapLegendProps) {
@@ -67,7 +67,7 @@ export function MapLegend({ visibleAgencyIds, agencies }: MapLegendProps) {
                     <div className="flex gap-0.5 flex-shrink-0">
                       {colors.slice(0, 4).map((c, i) => (
                         <div
-                          key={i}
+                          key={`${c}-${i}`}
                           className="h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: ensureContrast(`#${c}`) }}
                         />

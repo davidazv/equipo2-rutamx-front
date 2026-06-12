@@ -12,7 +12,7 @@ const SAMPLE_MODELS: BusModel[] = [
     passengerCapacity: 85,
     unitCostUsd: 420000,
     batteryCapacityKwh: 352.08,
-    energyConsumptionKwhKm: 1.0,
+    energyConsumptionKwhKm: 1,
     fuelConsumptionLKm: 0,
     maintenanceCostPerKm: 0.12,
     co2EmissionsGKm: 0,

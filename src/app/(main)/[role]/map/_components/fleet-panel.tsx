@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getTripsByDay, getTravelTimes, type TripsByDayItem, type TravelTimeItem } from "@/lib/api/campaigns";
 import { getBusModels, type BusModel } from "@/lib/api/bus-models";
+import { getBusModelColor } from "@/lib/bus-model-colors";
 import type { RouteWithShapes } from "@/lib/api/energy";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -55,8 +56,8 @@ function computeBounds(
 }
 
 interface FleetPanelProps {
-  routes: RouteWithShapes[];
-  onSelectionChange: (
+  readonly routes: RouteWithShapes[];
+  readonly onSelectionChange: (
     routeId: string,
     bounds: [[number, number], [number, number]] | null,
     colorMap: Map<string, string>
@@ -169,7 +170,7 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
   }, [selectedTripData]);
 
   const peakHourDemand = useMemo(
-    () => estimatedDailyDemand != null ? Math.round(estimatedDailyDemand * PEAK_HOUR_FACTOR) : 0,
+    () => estimatedDailyDemand === null ? 0 : Math.round(estimatedDailyDemand * PEAK_HOUR_FACTOR),
     [estimatedDailyDemand]
   );
 
@@ -257,7 +258,7 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                 title="Sesión expirada"
                 description="Tu sesión ha caducado. Cierra sesión e inicia de nuevo."
                 action={
-                  <Button size="sm" onClick={() => { window.location.href = "/login"; }}>
+                  <Button size="sm" onClick={() => { globalThis.window.location.href = "/login"; }}>
                     Iniciar sesión
                   </Button>
                 }
@@ -309,8 +310,8 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                       placeholder={String(fleetCalc.gtfsOneWay)}
                       value={overrideOneWay ?? ""}
                       onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        setOverrideOneWay(!isNaN(v) && v > 0 ? v : null);
+                        const v = Number.parseInt(e.target.value, 10);
+                        setOverrideOneWay(!Number.isNaN(v) && v > 0 ? v : null);
                       }}
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -330,8 +331,8 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                       placeholder={String(fleetCalc.gtfsHeadway)}
                       value={overrideHeadway ?? ""}
                       onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        setOverrideHeadway(!isNaN(v) && v > 0 ? v : null);
+                        const v = Number.parseInt(e.target.value, 10);
+                        setOverrideHeadway(!Number.isNaN(v) && v > 0 ? v : null);
                       }}
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
                     />
@@ -445,22 +446,41 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                 {rankedModels.length === 0 ? (
                   <p className="text-xs text-text-muted text-center py-4">Sin modelos disponibles</p>
                 ) : (
-                  rankedModels.map(({ model, coversRoute, actualFleet, totalCost, recommended }) => (
+                  rankedModels.map(({ model, coversRoute, actualFleet, totalCost, recommended }, idx) => {
+                    const color = getBusModelColor(idx);
+                    return (
                     <div
                       key={model.id}
                       className={cn(
                         "rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                        recommended ? "border-primary bg-primary/5" : "border-border opacity-70"
+                        !coversRoute && "opacity-60"
                       )}
+                      style={{
+                        borderLeftWidth: 3,
+                        borderLeftColor: color?.hex ?? "transparent",
+                        borderColor: recommended ? color?.hex : undefined,
+                        backgroundColor: recommended && color ? `${color.hex}10` : undefined,
+                      }}
                     >
                       {/* Row 1: name + total cost */}
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium truncate text-xs leading-tight">
-                          {model.manufacturer} {model.name}
-                        </p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {color && (
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                          )}
+                          <p className="font-medium truncate text-xs leading-tight">
+                            {model.manufacturer} {model.name}
+                          </p>
+                        </div>
                         <div className="text-right shrink-0">
                           {coversRoute && actualFleet != null ? (
-                            <p className="text-xs font-semibold tabular-nums">
+                            <p
+                              className="text-xs font-semibold tabular-nums"
+                              style={{ color: color?.hex }}
+                            >
                               ${(totalCost / 1_000_000).toFixed(2)}M USD
                             </p>
                           ) : (
@@ -481,10 +501,11 @@ export function FleetPanel({ routes, onSelectionChange }: FleetPanelProps) {
                         )}
                       </div>
                       {recommended && (
-                        <Badge className="mt-1 text-[9px] px-1.5 py-0">Óptimo</Badge>
+                        <Badge className="mt-1 text-[9px] px-1.5 py-0" style={{ backgroundColor: color?.hex }}>Óptimo</Badge>
                       )}
                     </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

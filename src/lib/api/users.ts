@@ -156,7 +156,7 @@ export async function exportUsersCsv(): Promise<void> {
   if (res.status < 200 || res.status >= 300) throw new Error(`EXPORT_FAILED:${res.status}`)
 
   const disposition = (res.headers['content-disposition'] as string | undefined) ?? ''
-  const match = disposition.match(/filename="?([^"]+)"?/)
+  const match = /filename="?([^"]+)"?/.exec(disposition)
   const today = new Date().toISOString().slice(0, 10)
   const filename = match ? match[1] : `usuarios_${today}.csv`
 
@@ -167,6 +167,6 @@ export async function exportUsersCsv(): Promise<void> {
   a.download = filename
   document.body.appendChild(a)
   a.click()
-  document.body.removeChild(a)
+  a.remove()
   URL.revokeObjectURL(url)
 }

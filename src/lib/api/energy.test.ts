@@ -32,7 +32,7 @@ describe("getBusModels", () => {
         passengerCapacity: 85,
         unitCostUsd: 420000,
         batteryCapacityKwh: 352.08,
-        energyConsumptionKwhKm: 1.0,
+        energyConsumptionKwhKm: 1,
         fuelConsumptionLKm: 0,
         maintenanceCostPerKm: 0.12,
         co2EmissionsGKm: 0,
@@ -62,7 +62,7 @@ describe("getRoutes", () => {
         routeShortName: "13",
         routeLongName: "Trolebus Linea 13",
         routeType: 11,
-        distanceKm: 20.0,
+        distanceKm: 20,
       },
     ];
     mockApiGet.mockResolvedValueOnce(routes);
@@ -84,7 +84,7 @@ describe("getRoutesWithShapes", () => {
         routeLongName: "Trolebus Linea 13",
         routeType: 11,
         routeColor: null,
-        distanceKm: 20.0,
+        distanceKm: 20,
         coordinates: [
           [-99.065139, 19.345718],
           [-99.07, 19.355],
@@ -104,7 +104,7 @@ describe("calculateEnergyConsumption", () => {
   it("should call API with correct query params", async () => {
     const response: EnergyConsumptionResponse = {
       routeId: "TR13",
-      routeDistanceKm: 20.0,
+      routeDistanceKm: 20,
       busModelId: 1,
       busModelName: "Yutong E12PRO",
       occupancyPercent: 50,
@@ -126,13 +126,13 @@ describe("calculateEnergyConsumption", () => {
   it("should encode routeId with special characters", async () => {
     const response: EnergyConsumptionResponse = {
       routeId: "R/1",
-      routeDistanceKm: 10.0,
+      routeDistanceKm: 10,
       busModelId: 1,
       busModelName: "Test",
       occupancyPercent: 0,
       estimatedConsumptionKwh: 12.6,
-      batteryPercentAfter: 95.0,
-      remainingRangeKm: 250.0,
+      batteryPercentAfter: 95,
+      remainingRangeKm: 250,
       canCompleteRoute: true,
     };
     mockApiGet.mockResolvedValueOnce(response);

@@ -28,9 +28,9 @@ interface LineChartDataset {
 }
 
 interface LineChartProps {
-  data: {
-    labels: string[];
-    datasets: LineChartDataset[];
+  readonly data: {
+    readonly labels: string[];
+    readonly datasets: LineChartDataset[];
   };
 }
 

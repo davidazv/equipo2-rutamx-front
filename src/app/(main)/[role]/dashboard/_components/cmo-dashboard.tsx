@@ -128,7 +128,7 @@ export function CmoDashboard() {
             }
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               selectedAgency === a.agencyId
-                ? `text-white${!a.agencyColor ? " bg-primary" : ""}`
+                ? `text-white${a.agencyColor ? "" : " bg-primary"}`
                 : "bg-muted text-text-secondary hover:bg-muted/80"
             }`}
           >
@@ -163,7 +163,7 @@ export function CmoDashboard() {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold">Tablero por Ruta</h2>
           <span className="text-sm text-text-secondary">
-            {filtered.length} ruta{filtered.length !== 1 ? "s" : ""}
+            {filtered.length} ruta{filtered.length === 1 ? "" : "s"}
           </span>
         </div>
 

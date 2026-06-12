@@ -6,14 +6,14 @@ import type { AgencyWithColorsResponse } from "@/lib/api/agencies";
 import { Spinner } from "@/components/ui/spinner";
 
 interface MapContainerProps {
-  routes: RouteWithShapes[];
-  selectedRouteId: string | null;
-  getRouteColor: (route: RouteWithShapes, index: number) => string;
-  visibleAgencyIds: string[];
-  agencies: AgencyWithColorsResponse[];
-  targetBounds?: [[number, number], [number, number]] | null;
-  unselectedOpacity?: number;
-  unselectedLineWidth?: number;
+  readonly routes: RouteWithShapes[];
+  readonly selectedRouteId: string | null;
+  readonly getRouteColor: (route: RouteWithShapes, index: number) => string;
+  readonly visibleAgencyIds: string[];
+  readonly agencies: AgencyWithColorsResponse[];
+  readonly targetBounds?: [[number, number], [number, number]] | null;
+  readonly unselectedOpacity?: number;
+  readonly unselectedLineWidth?: number;
 }
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";

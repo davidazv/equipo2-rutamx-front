@@ -33,11 +33,127 @@ const STATIONS: Station[] = [
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
+const ROLE_ROUTES: Record<string, string> = {
+  ADMIN: "/admin",
+  CEO:   "/ceo/map",
+  COO:   "/coo/map",
+  CMO:   "/cmo/map",
+};
+
+async function resolveDestination(token: string): Promise<string | null> {
+  const res = await fetch(`${API_URL}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  const me: { id: number; email: string; roleName: string; firstName: string; lastName: string } = await res.json();
+  if (!me?.roleName || !ROLE_ROUTES[me.roleName]) return null;
+  saveRole(me.roleName);
+  saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email.toLowerCase() });
+  return ROLE_ROUTES[me.roleName];
+}
+
 const LX  = 185;
 const Y0  = 55;
 const Y1  = 710;
 const LEN = Y1 - Y0;
 const STREETS = [80, 125, 165, 210, 255, 300, 345, 385, 420, 455, 495, 530, 568, 600, 638, 672, 705];
+
+interface StationMarkerProps {
+  readonly s: Station;
+  readonly isHov: boolean;
+  readonly onEnter: () => void;
+  readonly onLeave: () => void;
+}
+
+function stationRadius(s: Station): number {
+  if (s.isTerminal) return 11;
+  if (s.isTransfer) return 8;
+  return 6;
+}
+
+function stationDotFill(isHov: boolean, s: Station): string {
+  if (isHov) return "#0ea5e9";
+  if (s.isTerminal) return "#075985";
+  return "#0c4a6e";
+}
+
+function labelFill(isHov: boolean, s: Station): string {
+  if (isHov) return "#e2e8f0";
+  if (s.isTransfer || s.isTerminal) return "#94a3b8";
+  return "#64748b";
+}
+
+function labelFontSize(s: Station): string {
+  if (s.isTerminal) return "11";
+  if (s.isTransfer) return "10";
+  return "9";
+}
+
+function labelFontWeight(s: Station): string {
+  return s.isTerminal || s.isTransfer ? "600" : "400";
+}
+
+function StationMarker({ s, isHov, onEnter, onLeave }: StationMarkerProps) {
+  const r = stationRadius(s);
+  const showAbove = s.y > 580;
+  return (
+    <g key={s.id} onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ cursor: "pointer" }}>
+      {isHov && (
+        <motion.circle cx={LX} cy={s.y}
+          initial={{ r, opacity: 0.8 }} fill="none" stroke="#7dd3fc" strokeWidth="1.5"
+          animate={{ r: [r, r + 18], opacity: [0.8, 0] }}
+          transition={{ duration: 0.6, repeat: Infinity }}
+        />
+      )}
+      {s.isTransfer && (
+        <circle cx={LX} cy={s.y} r={r + 4} fill="none"
+          stroke={isHov ? "#7dd3fc" : "#1d4ed8"} strokeWidth="1.5"
+          strokeDasharray={s.isTerminal ? undefined : "3 2"}
+        />
+      )}
+      <circle cx={LX} cy={s.y} r={r}
+        fill={stationDotFill(isHov, s)}
+        stroke={isHov ? "#e0f2fe" : "#38bdf8"}
+        strokeWidth={s.isTerminal ? 2.5 : 2}
+        filter={isHov ? "url(#gn)" : undefined}
+        style={{ transition: "fill 0.2s" }}
+      />
+      <circle cx={LX} cy={s.y} r={s.isTerminal ? 4.5 : 2.5}
+        fill={isHov ? "white" : "#bae6fd"} style={{ transition: "fill 0.2s" }}
+      />
+      <text x={LX + 20} y={s.y + 4}
+        fill={labelFill(isHov, s)}
+        fontSize={labelFontSize(s)}
+        fontWeight={labelFontWeight(s)}
+        fontFamily="sans-serif" style={{ transition: "fill 0.2s" }}
+      >
+        {s.label}
+      </text>
+      {s.metroLines?.map((line, li) => (
+        <g key={line}>
+          <rect x={LX - 28 - li * 24} y={s.y - 7} width="20" height="13" rx="3"
+            fill="#1e3a8a" stroke="#3b82f6" strokeWidth="0.7"/>
+          <text x={LX - 18 - li * 24} y={s.y + 3.5}
+            fill="#93c5fd" fontSize="7" textAnchor="middle"
+            fontFamily="sans-serif" fontWeight="700">
+            {line}
+          </text>
+        </g>
+      ))}
+      {isHov && (
+        <g>
+          <rect x={LX + 18} y={showAbove ? s.y - 28 : s.y + 12}
+            width="148" height="18" rx="4"
+            fill="#0f172a" stroke="#0ea5e9" strokeWidth="0.8" opacity="0.97"/>
+          <text x={LX + 22} y={showAbove ? s.y - 15 : s.y + 24}
+            fill="#7dd3fc" fontSize="7.8" fontFamily="sans-serif">
+            {s.tooltip}
+          </text>
+        </g>
+      )}
+    </g>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,39 +163,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await signIn(email, password);
-
-      let destination: string | null = null;
       const token = getToken();
-      if (token) {
-        const res = await fetch(`${API_URL}/api/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const me: { id: number; email: string; roleName: string; firstName: string; lastName: string } = await res.json();
-          const roleRoutes: Record<string, string> = {
-            ADMIN: "/admin",
-            CEO:   "/ceo/map",
-            COO:   "/coo/map",
-            CMO:   "/cmo/map",
-          };
-          if (me?.roleName && roleRoutes[me.roleName]) {
-            saveRole(me.roleName);
-            saveUser({ id: me.id, firstName: me.firstName, lastName: me.lastName, email: me.email.toLowerCase() });
-            destination = roleRoutes[me.roleName];
-          }
-        }
-      }
-
+      const destination = token ? await resolveDestination(token) : null;
       if (!destination) {
         throw new Error("El servicio no está disponible. Verifica que el servidor esté activo e intenta de nuevo.");
       }
-
       router.push(destination);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
@@ -144,32 +238,32 @@ export default function LoginPage() {
               {/* Crossing route lines */}
               <path d="M 15,85 L 75,85 L 185,248 L 290,310 L 390,310"
                 stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:75,cy:85},{cx:185,cy:248},{cx:290,cy:310}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#14532d" stroke="#22c55e" strokeWidth="1.5"/>
+              {[{cx:75,cy:85},{cx:185,cy:248},{cx:290,cy:310}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#14532d" stroke="#22c55e" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,290 L 100,290 L 185,338 L 380,338 L 420,300"
                 stroke="#f97316" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:100,cy:290},{cx:185,cy:338},{cx:310,cy:338}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#431407" stroke="#f97316" strokeWidth="1.5"/>
+              {[{cx:100,cy:290},{cx:185,cy:338},{cx:310,cy:338}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#431407" stroke="#f97316" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,375 L 110,410 L 185,410 L 360,410 L 430,370"
                 stroke="#3b82f6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:110,cy:410},{cx:185,cy:410},{cx:290,cy:410}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
+              {[{cx:110,cy:410},{cx:185,cy:410},{cx:290,cy:410}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5"/>
               ))}
 
               <path d="M 15,535 L 100,480 L 185,480 L 350,480 L 430,445"
                 stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:100,cy:480},{cx:185,cy:480},{cx:310,cy:480}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#3b0764" stroke="#a855f7" strokeWidth="1.5"/>
+              {[{cx:100,cy:480},{cx:185,cy:480},{cx:310,cy:480}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#3b0764" stroke="#a855f7" strokeWidth="1.5"/>
               ))}
 
               <path d="M 185,622 L 280,575 L 380,560 L 430,560"
                 stroke="#f59e0b" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.65"/>
-              {[{cx:280,cy:575},{cx:380,cy:560}].map((p,i)=>(
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#451a03" stroke="#f59e0b" strokeWidth="1.5"/>
+              {[{cx:280,cy:575},{cx:380,cy:560}].map((p)=>(
+                <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r="4" fill="#451a03" stroke="#f59e0b" strokeWidth="1.5"/>
               ))}
 
               <path d="M 185,55 L 270,28 L 380,28 L 430,28"
@@ -223,82 +317,15 @@ export default function LoginPage() {
               ))}
 
               {/* Stations */}
-              {STATIONS.map((s) => {
-                const isHov = hovered === s.id;
-                const r = s.isTerminal ? 11 : s.isTransfer ? 8 : 6;
-                const showAbove = s.y > 580;
-
-                return (
-                  <g key={s.id}
-                    onMouseEnter={() => setHovered(s.id)}
-                    onMouseLeave={() => setHovered(null)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {isHov && (
-                      <motion.circle cx={LX} cy={s.y}
-                        initial={{ r, opacity: 0.8 }}
-                        fill="none" stroke="#7dd3fc" strokeWidth="1.5"
-                        animate={{ r: [r, r + 18], opacity: [0.8, 0] }}
-                        transition={{ duration: 0.6, repeat: Infinity }}
-                      />
-                    )}
-
-                    {s.isTransfer && (
-                      <circle cx={LX} cy={s.y} r={r + 4} fill="none"
-                        stroke={isHov ? "#7dd3fc" : "#1d4ed8"}
-                        strokeWidth="1.5"
-                        strokeDasharray={s.isTerminal ? undefined : "3 2"}
-                      />
-                    )}
-
-                    <circle cx={LX} cy={s.y} r={r}
-                      fill={isHov ? "#0ea5e9" : s.isTerminal ? "#075985" : "#0c4a6e"}
-                      stroke={isHov ? "#e0f2fe" : "#38bdf8"}
-                      strokeWidth={s.isTerminal ? 2.5 : 2}
-                      filter={isHov ? "url(#gn)" : undefined}
-                      style={{ transition: "fill 0.2s" }}
-                    />
-                    <circle cx={LX} cy={s.y} r={s.isTerminal ? 4.5 : 2.5}
-                      fill={isHov ? "white" : "#bae6fd"}
-                      style={{ transition: "fill 0.2s" }}
-                    />
-
-                    <text x={LX + 20} y={s.y + 4}
-                      fill={isHov ? "#e2e8f0" : s.isTransfer || s.isTerminal ? "#94a3b8" : "#64748b"}
-                      fontSize={s.isTerminal ? "11" : s.isTransfer ? "10" : "9"}
-                      fontWeight={s.isTerminal || s.isTransfer ? "600" : "400"}
-                      fontFamily="sans-serif"
-                      style={{ transition: "fill 0.2s" }}
-                    >
-                      {s.label}
-                    </text>
-
-                    {s.metroLines && s.metroLines.map((line, li) => (
-                      <g key={li}>
-                        <rect x={LX - 28 - li * 24} y={s.y - 7} width="20" height="13" rx="3"
-                          fill="#1e3a8a" stroke="#3b82f6" strokeWidth="0.7"/>
-                        <text x={LX - 18 - li * 24} y={s.y + 3.5}
-                          fill="#93c5fd" fontSize="7" textAnchor="middle"
-                          fontFamily="sans-serif" fontWeight="700">
-                          {line}
-                        </text>
-                      </g>
-                    ))}
-
-                    {isHov && (
-                      <g>
-                        <rect x={LX + 18} y={showAbove ? s.y - 28 : s.y + 12}
-                          width="148" height="18" rx="4"
-                          fill="#0f172a" stroke="#0ea5e9" strokeWidth="0.8" opacity="0.97"/>
-                        <text x={LX + 22} y={showAbove ? s.y - 15 : s.y + 24}
-                          fill="#7dd3fc" fontSize="7.8" fontFamily="sans-serif">
-                          {s.tooltip}
-                        </text>
-                      </g>
-                    )}
-                  </g>
-                );
-              })}
+              {STATIONS.map((s) => (
+                <StationMarker
+                  key={s.id}
+                  s={s}
+                  isHov={hovered === s.id}
+                  onEnter={() => setHovered(s.id)}
+                  onLeave={() => setHovered(null)}
+                />
+              ))}
 
               <text x={LX - 9} y={Y0 - 14} fill="#334155" fontSize="9" fontFamily="sans-serif">N ↑</text>
               <text x={LX - 9} y={Y1 + 20} fill="#334155" fontSize="9" fontFamily="sans-serif">S ↓</text>

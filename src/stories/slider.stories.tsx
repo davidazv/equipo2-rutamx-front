@@ -20,28 +20,30 @@ export const Default: Story = {
   ),
 };
 
-export const Controlled: Story = {
-  render: () => {
-    const [value, setValue] = useState([40]);
-    return (
-      <div className="flex flex-col gap-3 w-64">
-        <div className="flex justify-between text-sm">
-          <span className="text-text-secondary">Battery threshold</span>
-          <span className="font-semibold text-primary">{value[0]}%</span>
-        </div>
-        <Slider
-          value={value}
-          onValueChange={setValue}
-          max={100}
-          step={5}
-        />
-        <div className="flex justify-between text-xs text-text-muted">
-          <span>0%</span>
-          <span>100%</span>
-        </div>
+function ControlledSliderStory() {
+  const [value, setValue] = useState([40]);
+  return (
+    <div className="flex flex-col gap-3 w-64">
+      <div className="flex justify-between text-sm">
+        <span className="text-text-secondary">Battery threshold</span>
+        <span className="font-semibold text-primary">{value[0]}%</span>
       </div>
-    );
-  },
+      <Slider
+        value={value}
+        onValueChange={setValue}
+        max={100}
+        step={5}
+      />
+      <div className="flex justify-between text-xs text-text-muted">
+        <span>0%</span>
+        <span>100%</span>
+      </div>
+    </div>
+  );
+}
+
+export const Controlled: Story = {
+  render: () => <ControlledSliderStory />,
 };
 
 export const SmallRange: Story = {

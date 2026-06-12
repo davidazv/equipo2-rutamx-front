@@ -7,7 +7,7 @@ const RULES = [
   { label: "Al menos un número", test: (p: string) => /\d/.test(p) },
   {
     label: "Al menos un carácter especial (!@#$%^&*...)",
-    test: (p: string) => /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?`~]/.test(p),
+    test: (p: string) => /[!@#$%^&*()\-_=+[\]{};':"\\|,.<>/?`~]/.test(p),
   },
 ];
 
@@ -15,7 +15,7 @@ export function passwordMeetsRequirements(password: string): boolean {
   return RULES.every((r) => r.test(password));
 }
 
-export function PasswordRequirements({ password }: { password: string }) {
+export function PasswordRequirements({ password }: { readonly password: string }) {
   if (!password) return null;
   return (
     <ul className="mt-2 space-y-1">

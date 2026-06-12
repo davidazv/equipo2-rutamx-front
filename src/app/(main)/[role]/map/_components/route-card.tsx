@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn, formatNumber } from "@/lib/utils";
 
 interface RouteCardProps {
-  color: string;
-  shortName: string;
-  longName: string;
-  distanceKm?: number;
-  pointCount?: number;
-  isSelected?: boolean;
-  onClick: () => void;
+  readonly color: string;
+  readonly shortName: string;
+  readonly longName: string;
+  readonly distanceKm?: number;
+  readonly pointCount?: number;
+  readonly isSelected?: boolean;
+  readonly onClick: () => void;
 }
 
 export function RouteCard({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bus, Route, Users, TrendingUp, Building2 } from "lucide-react";
+import { Route, Users, TrendingUp, Building2 } from "lucide-react";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { ChartWrapper } from "@/components/charts/chart-wrapper";
 import { BarChart } from "@/components/charts/bar-chart";

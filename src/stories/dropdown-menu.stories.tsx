@@ -73,52 +73,56 @@ export const WithSubMenu: Story = {
   ),
 };
 
+function WithCheckboxItemsStory() {
+  const [metrobus, setMetrobus] = useState(true);
+  const [metro, setMetro] = useState(false);
+  const [rtp, setRtp] = useState(true);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Filter Agencies</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48">
+        <DropdownMenuLabel>Agencies</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxItem checked={metrobus} onCheckedChange={setMetrobus}>
+          Metrobús
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={metro} onCheckedChange={setMetro}>
+          Metro
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={rtp} onCheckedChange={setRtp}>
+          RTP
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function WithRadioGroupStory() {
+  const [role, setRole] = useState("cmo");
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Switch Role</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48">
+        <DropdownMenuLabel>View as Role</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={role} onValueChange={setRole}>
+          <DropdownMenuRadioItem value="cmo">CMO</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="coo">COO</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export const WithCheckboxItems: Story = {
-  render: () => {
-    const [metrobus, setMetrobus] = useState(true);
-    const [metro, setMetro] = useState(false);
-    const [rtp, setRtp] = useState(true);
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">Filter Agencies</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48">
-          <DropdownMenuLabel>Agencies</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem checked={metrobus} onCheckedChange={setMetrobus}>
-            Metrobús
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked={metro} onCheckedChange={setMetro}>
-            Metro
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked={rtp} onCheckedChange={setRtp}>
-            RTP
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  },
+  render: () => <WithCheckboxItemsStory />,
 };
 
 export const WithRadioGroup: Story = {
-  render: () => {
-    const [role, setRole] = useState("cmo");
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">Switch Role</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48">
-          <DropdownMenuLabel>View as Role</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup value={role} onValueChange={setRole}>
-            <DropdownMenuRadioItem value="cmo">CMO</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="coo">COO</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  },
+  render: () => <WithRadioGroupStory />,
 };

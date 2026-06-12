@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ROIComparisonCard } from "@/components/shared/roi-comparison-card";
 
 const MOCK_MODELS = [
-  { id: 1, name: "E12PRO", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 300, passengerCapacity: 85, unitCostUsd: 420000, batteryCapacityKwh: 352, energyConsumptionKwhKm: 1.0, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
-  { id: 2, name: "ZK5120C", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 130, passengerCapacity: 85, unitCostUsd: 300000, batteryCapacityKwh: 127, energyConsumptionKwhKm: 1.0, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
+  { id: 1, name: "E12PRO", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 300, passengerCapacity: 85, unitCostUsd: 420000, batteryCapacityKwh: 352, energyConsumptionKwhKm: 1, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
+  { id: 2, name: "ZK5120C", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 130, passengerCapacity: 85, unitCostUsd: 300000, batteryCapacityKwh: 127, energyConsumptionKwhKm: 1, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.12, co2EmissionsGKm: 0 },
   { id: 3, name: "ZK5180C", manufacturer: "Yutong", fuelType: "ELECTRIC" as const, autonomyKm: 120, passengerCapacity: 140, unitCostUsd: 550000, batteryCapacityKwh: 155, energyConsumptionKwhKm: 1.3, fuelConsumptionLKm: 0, maintenanceCostPerKm: 0.15, co2EmissionsGKm: 0 },
 ];
 

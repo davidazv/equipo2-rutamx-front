@@ -22,11 +22,11 @@ interface BarChartDataset {
 }
 
 interface BarChartProps {
-  data: {
-    labels: string[];
-    datasets: BarChartDataset[];
+  readonly data: {
+    readonly labels: string[];
+    readonly datasets: BarChartDataset[];
   };
-  horizontal?: boolean;
+  readonly horizontal?: boolean;
 }
 
 export function BarChart({ data, horizontal = false }: BarChartProps) {

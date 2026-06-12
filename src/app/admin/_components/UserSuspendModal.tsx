@@ -14,10 +14,10 @@ import type { User } from '@/lib/api/users'
 import { useConfirmAction } from '@/hooks/use-confirm-action'
 
 interface Props {
-  user: User | null
-  onClose: () => void
-  onSuspended: (user: User) => void
-  addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
+  readonly user: User | null
+  readonly onClose: () => void
+  readonly onSuspended: (user: User) => void
+  readonly addToast: (message: string, type?: 'success' | 'error' | 'warning') => void
 }
 
 export function UserSuspendModal({ user, onClose, onSuspended, addToast }: Props) {

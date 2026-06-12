@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 // ── SVG ──────────────────────────────────────────────────────────────────
 
 interface BusPlaceholderSvgProps {
-  className?: string;
+  readonly className?: string;
 }
 
 /**
@@ -94,7 +94,7 @@ export function BusPlaceholderSvg({ className }: BusPlaceholderSvgProps) {
 // ── Animated placeholder ───────────────────────────────────────────────────
 
 interface BusPlaceholderProps {
-  className?: string;
+  readonly className?: string;
 }
 
 /**

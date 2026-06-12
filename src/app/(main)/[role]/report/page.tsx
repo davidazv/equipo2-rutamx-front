@@ -138,7 +138,7 @@ export default function ComparativeReportPage() {
 
       reportRef.current.querySelectorAll("*").forEach((el) => {
         const htmlEl = el as HTMLElement;
-        const cs = window.getComputedStyle(htmlEl);
+        const cs = globalThis.window.getComputedStyle(htmlEl);
         const overrides: Array<{ prop: string; prev: string }> = [];
         COLOR_PROPS.forEach((prop) => {
           const val = cs.getPropertyValue(prop);
@@ -219,7 +219,7 @@ export default function ComparativeReportPage() {
       <ErrorState
         title="Error cargando catálogos"
         description={catalogError}
-        action={<Button onClick={() => window.location.reload()}>Reintentar</Button>}
+        action={<Button onClick={() => globalThis.window.location.reload()}>Reintentar</Button>}
       />
     );
   }
